@@ -6,13 +6,21 @@
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^13.2.0",
     "@testing-library/user-event": "^13.5.0",
+    "@turf/helpers": "^6.5.0",
     "@types/jest": "^27.5.1",
+    "@types/leaflet": "^1.7.11",
+    "@types/leaflet-gpx": "^1.3.3",
     "@types/node": "^16.11.35",
     "@types/react": "^18.0.9",
     "@types/react-dom": "^18.0.4",
+    "leaflet": "^1.8.0",
+    "leaflet-gpx": "^1.7.0",
     "react": "^18.1.0",
+    "react-async": "^10.0.1",
     "react-dom": "^18.1.0",
+    "react-leaflet": "^4.0.0",
     "react-scripts": "5.0.1",
+    "routebot": "file:../routebot/dist",
     "typescript": "^4.6.4",
     "web-vitals": "^2.1.4"
   },
@@ -39,5 +47,9 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "prettier": {
+    "printWidth": 120,
+    "tabWidth": 4
   }
 }
