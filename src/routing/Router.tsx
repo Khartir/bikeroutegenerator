@@ -7,41 +7,32 @@ import { useMap } from "react-leaflet";
 import { makeRandomRoute } from "routebot/lib/route";
 import { Controls } from "../leaflet/Controls";
 
-export function Router({start}: {start: LatLng}) {
+export function Router({ start }: { start: LatLng }) {
     // const [gpxLayer, setGpxLayer] = useState<null|GPX>(null);
-    const promiseFn = useMemo(
-        () => async () => getRoute({start}),
-        [start]
-        ); 
-        const { data } = useAsync({ promiseFn })
-        const map = useMap();
+    const promiseFn = useMemo(() => async () => getRoute({ start }), [start]);
+    const { data } = useAsync({ promiseFn });
+    const map = useMap();
     const gpxLayer = useMemo(() => {
         if (data) {
             //@ts-ignore
-            const gpx = new L.GPX(data, {async: true}) as GPX;
-    
-            gpx.on('loaded', function(e) {
+            const gpx = new L.GPX(data, { async: true }) as GPX;
+
+            gpx.on("loaded", function (e) {
                 map.fitBounds(e.target.getBounds());
-              }).addTo(map);
-              return gpx;
+            }).addTo(map);
+            return gpx;
         }
         return null;
     }, [data, map]);
-    
-    
-    console.log('foo')
 
-    // return null;
-
-    return <Controls gpx={gpxLayer}/>;
+    return <Controls gpx={gpxLayer} />;
 }
 
-async function getRoute({start}: {start: LatLng}) {
+async function getRoute({ start }: { start: LatLng }) {
     // return dummyPgx;
     const startPoint = point([start.lng, start.lat]);
     const gpxUrl = await makeRandomRoute(startPoint, 30, false);
     const gpxData = await (await fetch(gpxUrl)).text();
-    console.log(gpxData);
     return gpxData;
 }
 
@@ -1481,4 +1472,4 @@ const dummyPgx = `<?xml version="1.0" encoding="UTF-8"?>
   </trkseg>
  </trk>
 </gpx>
-`
+`;
