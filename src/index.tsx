@@ -1,15 +1,17 @@
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import reportWebVitals from './reportWebVitals';
-import { Map } from './leaflet/Map';
+import ReactDOM from "react-dom/client";
+import "./index.css";
+import reportWebVitals from "./reportWebVitals";
+import { Map } from "./leaflet/Map";
+import { Provider } from "react-redux";
+import { store } from "./state/store";
 
-const root = ReactDOM.createRoot(
-  document.getElementById('root') as HTMLElement
-);
+const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 root.render(
-  // <React.StrictMode>
-    <Map />
-  // </React.StrictMode>
+    // <React.StrictMode>
+    <Provider store={store}>
+        <Map />
+    </Provider>
+    // </React.StrictMode>
 );
 
 // If you want to start measuring performance in your app, pass a function
