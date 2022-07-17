@@ -1,9 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
 import startPointReducer from "./startPoint";
+import routeReducer from "./route";
 
 export const store = configureStore({
     reducer: {
         startPoint: startPointReducer,
+        route: routeReducer,
     },
 });
 

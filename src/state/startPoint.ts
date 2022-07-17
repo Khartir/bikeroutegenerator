@@ -17,7 +17,7 @@ const initialState: StartPointState = {
     value: null,
 };
 
-export const startPointSlice = createSlice({
+const startPointSlice = createSlice({
     name: "startPoint",
     initialState,
     reducers: {

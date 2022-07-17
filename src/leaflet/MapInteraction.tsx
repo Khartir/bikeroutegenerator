@@ -1,16 +1,11 @@
-import { LeafletMouseEvent } from "leaflet";
-import { Marker, useMapEvents } from "react-leaflet";
-import { Router } from "../routing/Router";
-import { useAppDispatch, useAppSelector } from "../state/hooks";
-import { selectStartPoint, setStartPoint } from "../state/startPoint";
+import { CalcRoute } from "./CalcRoute";
 import { StartPoint } from "./StartPoint";
 
 export function MapInteraction() {
     return (
-        <>
+        <div style={{ position: "absolute", right: "10%", top: "10%", zIndex: 1000, display: "grid" }}>
             <StartPoint />
-        </>
+            <CalcRoute />
+        </div>
     );
-
-    // return <>{position && <Router start={position} />}</>;
 }

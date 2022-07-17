@@ -1,34 +1,8 @@
 import { point } from "@turf/helpers";
-import { GPX, LatLng } from "leaflet";
-import * as L from "leaflet-gpx";
-import { useMemo, useState } from "react";
-import { useAsync } from "react-async";
-import { useMap } from "react-leaflet";
+import { LatLng } from "leaflet";
 import { makeRandomRoute } from "routebot/lib/route";
-import { Controls } from "../leaflet/Controls";
 
-export function Router({ start }: { start: LatLng }) {
-    // const [gpxLayer, setGpxLayer] = useState<null|GPX>(null);
-    const promiseFn = useMemo(() => async () => getRoute({ start }), [start]);
-    const { data } = useAsync({ promiseFn });
-    const map = useMap();
-    const gpxLayer = useMemo(() => {
-        if (data) {
-            //@ts-ignore
-            const gpx = new L.GPX(data, { async: true }) as GPX;
-
-            gpx.on("loaded", function (e) {
-                map.fitBounds(e.target.getBounds());
-            }).addTo(map);
-            return gpx;
-        }
-        return null;
-    }, [data, map]);
-
-    return <Controls gpx={gpxLayer} />;
-}
-
-async function getRoute({ start }: { start: LatLng }) {
+export async function getRoute(start: LatLng) {
     // return dummyPgx;
     const startPoint = point([start.lng, start.lat]);
     const gpxUrl = await makeRandomRoute(startPoint, 30, false);

@@ -1,4 +1,5 @@
 import { MapContainer, TileLayer } from "react-leaflet";
+import { Route } from "../routing/Route";
 import { MapInteraction } from "./MapInteraction";
 
 export function Map() {
@@ -9,6 +10,7 @@ export function Map() {
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             <MapInteraction />
+            <Route />
         </MapContainer>
     );
 }
