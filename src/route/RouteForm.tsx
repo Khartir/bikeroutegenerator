@@ -1,5 +1,5 @@
 import { CalcRoute } from "./calculateRoute/CalcRoute";
-import { Download } from "./Download";
+import { Download } from "./download/Download";
 import { Length } from "./length/Length";
 import { StartPoint } from "./startPoint/StartPoint";
 

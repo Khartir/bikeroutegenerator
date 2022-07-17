@@ -3,6 +3,7 @@ import { selectLength } from "../length/lengthSlice";
 import { fetchRoute, resetRoute, selectRoute } from "./routeSlice";
 import { selectStartPoint } from "../startPoint/startPointSlice";
 import { Button } from "../../leaflet/Button";
+import { messages } from "../../localization/localization";
 
 export function CalcRoute() {
     const startPoint = useAppSelector(selectStartPoint);
@@ -12,9 +13,9 @@ export function CalcRoute() {
     if (!startPoint) {
         return null;
     }
-    let label = "Calculate route";
+    let label = messages.calculateRoute.firstRoute;
     if (route) {
-        label = "Calculate new route";
+        label = messages.calculateRoute.newRoute;
     }
 
     return (

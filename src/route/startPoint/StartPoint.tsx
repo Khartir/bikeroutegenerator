@@ -3,6 +3,7 @@ import { Marker, useMapEvents } from "react-leaflet";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
 import { selectStartPoint, setStartPoint, unsetStartPoint } from "./startPointSlice";
 import { Button } from "../../leaflet/Button";
+import { messages } from "../../localization/localization";
 
 export function StartPoint() {
     const startPoint = useAppSelector(selectStartPoint);
@@ -22,7 +23,7 @@ export function StartPoint() {
     return (
         <>
             <Marker position={startPoint} />
-            <Button label="New start point" onClick={() => dispatch(unsetStartPoint())} />
+            <Button label={messages.startPoint.new} onClick={() => dispatch(unsetStartPoint())} />
         </>
     );
 }

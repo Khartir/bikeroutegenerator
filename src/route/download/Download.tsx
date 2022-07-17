@@ -1,13 +1,14 @@
-import { useAppSelector } from "../state/hooks";
-import { selectRoute } from "./calculateRoute/routeSlice";
-import { Button } from "../leaflet/Button";
+import { useAppSelector } from "../../state/hooks";
+import { selectRoute } from "../calculateRoute/routeSlice";
+import { Button } from "../../leaflet/Button";
+import { messages } from "../../localization/localization";
 
 export const Download = () => {
     const route = useAppSelector(selectRoute);
     if (!route) {
         return null;
     }
-    return <Button label="Download" onClick={() => downloadRoute(route)} />;
+    return <Button label={messages.download.label} onClick={() => downloadRoute(route)} />;
 };
 
 const downloadRoute = (gpxData: string) => {
