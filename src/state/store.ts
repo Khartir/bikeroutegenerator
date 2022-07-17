@@ -1,7 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit";
-import startPointReducer from "./startPoint";
-import routeReducer from "./route";
-import lengthReducer from "./length";
+import startPointReducer from "../route/startPoint/startPointSlice";
+import routeReducer from "../route/calculateRoute/routeSlice";
+import lengthReducer from "../route/length/lengthSlice";
 
 export const store = configureStore({
     reducer: {

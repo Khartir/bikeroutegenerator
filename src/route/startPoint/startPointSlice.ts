@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import { LatLng } from "leaflet";
-import { RootState } from "./store";
+import { RootState } from "../../state/store";
 
 interface PseudoLatLng {
     lat: number;

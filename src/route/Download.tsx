@@ -1,6 +1,6 @@
 import { useAppSelector } from "../state/hooks";
-import { selectRoute } from "../state/route";
-import { Button } from "./Button";
+import { selectRoute } from "./calculateRoute/routeSlice";
+import { Button } from "../leaflet/Button";
 
 export const Download = () => {
     const route = useAppSelector(selectRoute);

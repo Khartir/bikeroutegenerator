@@ -1,8 +1,8 @@
-import { useAppDispatch, useAppSelector } from "../state/hooks";
-import { selectLength } from "../state/length";
-import { fetchRoute, resetRoute, selectRoute } from "../state/route";
-import { selectStartPoint } from "../state/startPoint";
-import { Button } from "./Button";
+import { useAppDispatch, useAppSelector } from "../../state/hooks";
+import { selectLength } from "../length/lengthSlice";
+import { fetchRoute, resetRoute, selectRoute } from "./routeSlice";
+import { selectStartPoint } from "../startPoint/startPointSlice";
+import { Button } from "../../leaflet/Button";
 
 export function CalcRoute() {
     const startPoint = useAppSelector(selectStartPoint);

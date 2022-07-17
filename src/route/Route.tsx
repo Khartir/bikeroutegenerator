@@ -3,7 +3,7 @@ import * as L from "leaflet-gpx";
 import { useEffect } from "react";
 import { useMap } from "react-leaflet";
 import { useAppSelector } from "../state/hooks";
-import { selectRoute } from "../state/route";
+import { selectRoute } from "./calculateRoute/routeSlice";
 
 export function Route() {
     const route = useAppSelector(selectRoute);

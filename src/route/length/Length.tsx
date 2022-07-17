@@ -1,5 +1,5 @@
-import { useAppDispatch, useAppSelector } from "../state/hooks";
-import { selectLength, setLength } from "../state/length";
+import { useAppDispatch, useAppSelector } from "../../state/hooks";
+import { selectLength, setLength } from "./lengthSlice";
 
 export const Length = () => {
     const length = useAppSelector(selectLength);

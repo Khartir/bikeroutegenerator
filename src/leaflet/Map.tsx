@@ -1,6 +1,6 @@
 import { MapContainer, TileLayer } from "react-leaflet";
-import { Route } from "../routing/Route";
-import { MapInteraction } from "./MapInteraction";
+import { Route } from "../route/Route";
+import { RouteForm } from "../route/RouteForm";
 
 export function Map() {
     return (
@@ -9,7 +9,7 @@ export function Map() {
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            <MapInteraction />
+            <RouteForm />
             <Route />
         </MapContainer>
     );

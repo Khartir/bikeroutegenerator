@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getRoute } from "../routing/routeAPI";
-import { RootState } from "./store";
+import { getRoute } from "../../routing/routeAPI";
+import { RootState } from "../../state/store";
 
 export const fetchRoute = createAsyncThunk("route/newRoute", getRoute);
 
