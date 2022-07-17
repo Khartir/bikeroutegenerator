@@ -1,12 +1,8 @@
-import { MouseEvent, useCallback } from "react";
-import L from "leaflet";
+import { MouseEvent } from "react";
+import { useRegisterWithLeaflet } from "./leafletHelpers";
 
 export function Button({ label, onClick }: { label: string; onClick: (e: MouseEvent) => void }) {
-    const disableRef = useCallback((node: HTMLButtonElement | null) => {
-        if (node) {
-            L.DomEvent.disableClickPropagation(node);
-        }
-    }, []);
+    const disableRef = useRegisterWithLeaflet();
     return (
         <button onClick={onClick} ref={disableRef}>
             {label}

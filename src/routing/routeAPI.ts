@@ -2,10 +2,10 @@ import { point } from "@turf/helpers";
 import { LatLng } from "leaflet";
 import { makeRandomRoute } from "routebot/lib/route";
 
-export async function getRoute(start: LatLng) {
+export async function getRoute({ startPoint, length }: { startPoint: LatLng; length: number }) {
     // return dummyPgx;
-    const startPoint = point([start.lng, start.lat]);
-    const gpxUrl = await makeRandomRoute(startPoint, 30, false);
+    const startAsTurfPoint = point([startPoint.lng, startPoint.lat]);
+    const gpxUrl = await makeRandomRoute(startAsTurfPoint, length, false);
     const gpxData = await (await fetch(gpxUrl)).text();
     return gpxData;
 }

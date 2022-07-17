@@ -19,7 +19,6 @@ const routeSlice = createSlice({
     initialState,
     reducers: {
         resetRoute: (state) => {
-            console.log("reset");
             state.route = "";
         },
     },
