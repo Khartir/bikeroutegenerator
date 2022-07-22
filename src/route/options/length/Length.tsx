@@ -1,6 +1,6 @@
 import { TextField } from "@mui/material";
-import { messages } from "../../localization/localization";
-import { useAppDispatch, useAppSelector } from "../../state/hooks";
+import { messages } from "../../../localization/localization";
+import { useAppDispatch, useAppSelector } from "../../../state/hooks";
 import { selectLength, setLength } from "./lengthSlice";
 
 export const Length = () => {

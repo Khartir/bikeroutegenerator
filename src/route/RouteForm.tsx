@@ -1,7 +1,7 @@
 import { Box, ButtonGroup, Stack } from "@mui/material";
 import { CalcRoute } from "./calculateRoute/CalcRoute";
 import { Download } from "./download/Download";
-import { Length } from "./length/Length";
+import Options from "./options/Options";
 import { StartPoint } from "./startPoint/StartPoint";
 
 export function RouteForm() {
@@ -19,8 +19,8 @@ export function RouteForm() {
             }}
         >
             <Stack spacing={2}>
-                <Length />
-                <ButtonGroup variant="outlined" orientation="vertical">
+                <Options />
+                <ButtonGroup orientation="vertical">
                     <StartPoint />
                     <CalcRoute />
                     <Download />

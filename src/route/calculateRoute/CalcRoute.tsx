@@ -1,5 +1,5 @@
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
-import { selectLength } from "../length/lengthSlice";
+import { selectLength } from "../options/length/lengthSlice";
 import { fetchRoute, resetRoute, selectRoute } from "./routeSlice";
 import { selectStartPoint } from "../startPoint/startPointSlice";
 import { Button } from "../../leaflet/Button";
