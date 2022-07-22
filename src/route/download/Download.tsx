@@ -2,13 +2,18 @@ import { useAppSelector } from "../../state/hooks";
 import { selectRoute } from "../calculateRoute/routeSlice";
 import { Button } from "../../leaflet/Button";
 import { messages } from "../../localization/localization";
+import DownloadIcon from "@mui/icons-material/Download";
 
 export const Download = () => {
     const route = useAppSelector(selectRoute);
     if (!route) {
         return null;
     }
-    return <Button label={messages.download.label} onClick={() => downloadRoute(route)} />;
+    return (
+        <Button label={messages.download.label} onClick={() => downloadRoute(route)}>
+            <DownloadIcon />
+        </Button>
+    );
 };
 
 const downloadRoute = (gpxData: string) => {

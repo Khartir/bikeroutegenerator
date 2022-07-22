@@ -4,6 +4,8 @@ import { fetchRoute, resetRoute, selectRoute } from "./routeSlice";
 import { selectStartPoint } from "../startPoint/startPointSlice";
 import { Button } from "../../leaflet/Button";
 import { messages } from "../../localization/localization";
+import Route from "@mui/icons-material/Route";
+import AltRoute from "@mui/icons-material/AltRoute";
 
 export function CalcRoute() {
     const startPoint = useAppSelector(selectStartPoint);
@@ -14,8 +16,10 @@ export function CalcRoute() {
         return null;
     }
     let label = messages.calculateRoute.firstRoute;
+    let Icon = Route;
     if (route) {
         label = messages.calculateRoute.newRoute;
+        Icon = AltRoute;
     }
 
     return (
@@ -25,6 +29,8 @@ export function CalcRoute() {
                 dispatch(resetRoute());
                 dispatch(fetchRoute({ startPoint, length }));
             }}
-        />
+        >
+            <Icon />
+        </Button>
     );
 }

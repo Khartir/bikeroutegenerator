@@ -4,6 +4,7 @@ import Modal from "@mui/material/Modal";
 import { Length } from "./length/Length";
 import { Button } from "../../leaflet/Button";
 import { messages } from "../../localization/localization";
+import Settings from "@mui/icons-material/Settings";
 
 const style = {
     position: "absolute" as "absolute",
@@ -24,7 +25,9 @@ export default function Options() {
 
     return (
         <div>
-            <Button label={messages.options.label} onClick={handleOpen} />
+            <Button label={messages.options.label} onClick={handleOpen}>
+                <Settings />
+            </Button>
             <Modal open={open} onClose={handleClose}>
                 <Box sx={style}>
                     <Length />
