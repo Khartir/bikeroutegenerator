@@ -6,6 +6,7 @@ import length from "../route/options/length/localization";
 import profile from "../route/options/profile/localization";
 import options from "../route/options/localization";
 import position from "../route/position/localization";
+import { localization as routeInfo } from "../route/RouteInfo";
 
 const m = {
     en: {
@@ -16,6 +17,7 @@ const m = {
         options: options.en,
         position: position.en,
         profile: profile.en,
+        routeInfo: routeInfo.en,
     },
     de: {
         download: download.de,
@@ -25,6 +27,7 @@ const m = {
         options: options.de,
         position: position.de,
         profile: profile.de,
+        routeInfo: routeInfo.de,
     },
 };
 

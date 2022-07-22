@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useMap } from "react-leaflet";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 import { selectRoute } from "./calculateRoute/routeSlice";
-import { setBounds } from "./position/boundsSlice";
+import { gpxParsed } from "./position/boundsSlice";
 
 export function Route() {
     const route = useAppSelector(selectRoute);
@@ -17,14 +17,19 @@ export function Route() {
             gpx = new L.GPX(route, { async: true, marker_options: { startIconUrl: null, endIconUrl: null } }) as GPX;
 
             gpx.on("loaded", function (e) {
-                const bounds: LatLngBounds = e.target.getBounds();
+                const gpx: GPX = e.target;
+                const bounds: LatLngBounds = gpx.getBounds();
                 dispatch(
-                    setBounds({
-                        southWest: { ...bounds.getSouthWest() },
-                        northEast: { ...bounds.getNorthEast() },
+                    gpxParsed({
+                        bounds: {
+                            southWest: { ...bounds.getSouthWest() },
+                            northEast: { ...bounds.getNorthEast() },
+                        },
+                        distance: gpx.get_distance(),
+                        elevation: gpx.get_elevation_gain(),
                     })
                 );
-                map.fitBounds(e.target.getBounds());
+                map.fitBounds(bounds);
             }).addTo(map);
         }
         return () => {
