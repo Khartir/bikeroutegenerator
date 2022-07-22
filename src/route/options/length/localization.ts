@@ -1,8 +1,8 @@
 export default {
     en: {
-        label: "Length",
+        label: "Length (km)",
     },
     de: {
-        label: "Länge",
+        label: "Länge (km)",
     },
 };
