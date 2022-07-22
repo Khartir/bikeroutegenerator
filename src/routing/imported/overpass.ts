@@ -1,6 +1,6 @@
 import { Feature, Point, polygon, Polygon, Position } from "@turf/helpers";
 import { overpassJson } from "overpass-ts";
-import { addDebugPosition } from "./debug";
+import { addDebugPosition, log } from "./debug";
 import { findMinDistancePosIndex } from "./distance";
 
 export async function snapPolygonToRoad(startPoint: Feature<Point>, poly: Feature<Polygon>) {
@@ -40,7 +40,7 @@ async function snapPosToRoad(pos: Position): Promise<Position> {
         });
 
         if (!result.elements.length) {
-            console.log(`Overpass Query with radius=${searchRadius} returned no results :/`);
+            log(`Overpass Query with radius=${searchRadius} returned no results :/`);
             continue;
         }
 

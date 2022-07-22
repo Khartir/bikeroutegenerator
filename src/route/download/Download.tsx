@@ -17,14 +17,17 @@ export const Download = () => {
 };
 
 const downloadRoute = (gpxData: string) => {
-    var element = document.createElement("a");
-    element.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(gpxData));
-    element.setAttribute("download", "route.gpx");
+    const file = new File([gpxData], "route.gpx", { type: "application/gpx+xml" });
+    const exportUrl = URL.createObjectURL(file);
+    const element = document.createElement("a");
+    element.setAttribute("href", exportUrl);
+    element.setAttribute("download", file.name);
 
     element.style.display = "none";
     document.body.appendChild(element);
 
     element.click();
+    URL.revokeObjectURL(exportUrl);
 
     document.body.removeChild(element);
 };
