@@ -3,6 +3,8 @@ import { CalcRoute } from "./calculateRoute/CalcRoute";
 import { Download } from "./download/Download";
 import Options from "./options/Options";
 import { StartPoint } from "./startPoint/StartPoint";
+import Divider from "@mui/material/Divider";
+import { CurrentPosition } from "./position/CurrentPosition";
 
 export function RouteForm() {
     return (
@@ -22,6 +24,8 @@ export function RouteForm() {
             <StartPoint />
             <CalcRoute />
             <Download />
+            <Divider />
+            <CurrentPosition />
         </ButtonGroup>
     );
 }
