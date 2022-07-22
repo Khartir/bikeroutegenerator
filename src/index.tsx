@@ -4,11 +4,13 @@ import reportWebVitals from "./reportWebVitals";
 import { Map } from "./leaflet/Map";
 import { Provider } from "react-redux";
 import { store } from "./state/store";
+import { CssBaseline } from "@mui/material";
 
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 root.render(
     // <React.StrictMode>
     <Provider store={store}>
+        <CssBaseline />
         <Map />
     </Provider>
     // </React.StrictMode>
