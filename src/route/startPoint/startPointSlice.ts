@@ -3,7 +3,7 @@ import type { PayloadAction } from "@reduxjs/toolkit";
 import { LatLng } from "leaflet";
 import { RootState } from "../../state/store";
 
-interface PseudoLatLng {
+export interface PseudoLatLng {
     lat: number;
     lng: number;
     alt?: number | undefined;

@@ -1,4 +1,4 @@
-import { GPX } from "leaflet";
+import { GPX, LatLngBounds } from "leaflet";
 import * as L from "leaflet-gpx";
 import { useEffect } from "react";
 import { useMap } from "react-leaflet";
@@ -17,7 +17,13 @@ export function Route() {
             gpx = new L.GPX(route, { async: true, marker_options: { startIconUrl: null, endIconUrl: null } }) as GPX;
 
             gpx.on("loaded", function (e) {
-                dispatch(setBounds(e.target.getBounds()));
+                const bounds: LatLngBounds = e.target.getBounds();
+                dispatch(
+                    setBounds({
+                        southWest: { ...bounds.getSouthWest() },
+                        northEast: { ...bounds.getNorthEast() },
+                    })
+                );
                 map.fitBounds(e.target.getBounds());
             }).addTo(map);
         }
