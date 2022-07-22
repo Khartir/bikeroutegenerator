@@ -1,6 +1,6 @@
 import { point } from "@turf/helpers";
 import { LatLng } from "leaflet";
-import { makeRandomRoute } from "routebot/lib/route";
+import { makeRandomRoute } from "./imported/route";
 
 export async function getRoute({ startPoint, length }: { startPoint: LatLng; length: number }) {
     const startAsTurfPoint = point([startPoint.lng, startPoint.lat]);
