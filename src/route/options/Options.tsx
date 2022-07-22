@@ -1,13 +1,14 @@
 import { useState } from "react";
-import Box from "@mui/material/Box";
+import Stack from "@mui/material/Stack";
 import Modal from "@mui/material/Modal";
 import { Length } from "./length/Length";
 import { Button } from "../../leaflet/Button";
 import { messages } from "../../localization/localization";
 import Settings from "@mui/icons-material/Settings";
+import { Profile } from "./profile/Profile";
 
 const style = {
-    position: "absolute" as "absolute",
+    position: "absolute",
     top: "50%",
     left: "50%",
     transform: "translate(-50%, -50%)",
@@ -29,9 +30,10 @@ export default function Options() {
                 <Settings />
             </Button>
             <Modal open={open} onClose={handleClose}>
-                <Box sx={style}>
+                <Stack sx={style} spacing={2}>
                     <Length />
-                </Box>
+                    <Profile />
+                </Stack>
             </Modal>
         </div>
     );

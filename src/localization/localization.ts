@@ -3,6 +3,7 @@ import startPoint from "../route/startPoint/localization";
 import calculateRoute from "../route/calculateRoute/localization";
 import download from "../route/download/localization";
 import length from "../route/options/length/localization";
+import profile from "../route/options/profile/localization";
 import options from "../route/options/localization";
 import position from "../route/position/localization";
 
@@ -14,6 +15,7 @@ const m = {
         length: length.en,
         options: options.en,
         position: position.en,
+        profile: profile.en,
     },
     de: {
         download: download.de,
@@ -22,6 +24,7 @@ const m = {
         length: length.de,
         options: options.de,
         position: position.de,
+        profile: profile.de,
     },
 };
 

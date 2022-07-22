@@ -6,13 +6,15 @@ import { Button } from "../../leaflet/Button";
 import { messages } from "../../localization/localization";
 import Route from "@mui/icons-material/Route";
 import AltRoute from "@mui/icons-material/AltRoute";
+import { selectProfile } from "../options/profile/profileSlice";
 
 export function CalcRoute() {
     const startPoint = useAppSelector(selectStartPoint);
     const route = useAppSelector(selectRoute);
     const length = useAppSelector(selectLength);
+    const profile = useAppSelector(selectProfile);
     const dispatch = useAppDispatch();
-    if (!startPoint) {
+    if (!startPoint || !profile) {
         return null;
     }
     let label = messages.calculateRoute.firstRoute;
@@ -27,7 +29,7 @@ export function CalcRoute() {
             label={label}
             onClick={() => {
                 dispatch(resetRoute());
-                dispatch(fetchRoute({ startPoint, length }));
+                dispatch(fetchRoute({ startPoint, length, profile }));
             }}
         >
             <Icon />

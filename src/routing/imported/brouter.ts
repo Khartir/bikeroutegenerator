@@ -1,4 +1,5 @@
 import { Feature, FeatureCollection, LineString, Point, Polygon, Position } from "@turf/helpers";
+import { Profile } from "../routeAPI";
 import { addDebugFeature, addDebugPosition, log } from "./debug";
 import { equalPos } from "./distance";
 
@@ -8,7 +9,7 @@ export async function polygonToGpxUrl(
     startPoint: Feature<Point>,
     poly: Feature<Polygon>,
     ccw: boolean,
-    profile = "trekking"
+    profile: Profile
 ) {
     const polyPoints = poly.geometry.coordinates[0];
     if (!ccw) polyPoints.reverse();
