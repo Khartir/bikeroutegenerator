@@ -5,6 +5,7 @@ import Options from "./options/Options";
 import { StartPoint } from "./startPoint/StartPoint";
 import Divider from "@mui/material/Divider";
 import { CurrentPosition } from "./position/CurrentPosition";
+import { CenterRoute } from "./position/CenterRoute";
 
 export function RouteForm() {
     return (
@@ -26,6 +27,7 @@ export function RouteForm() {
             <Download />
             <Divider />
             <CurrentPosition />
+            <CenterRoute />
         </ButtonGroup>
     );
 }

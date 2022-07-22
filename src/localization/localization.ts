@@ -4,6 +4,7 @@ import calculateRoute from "../route/calculateRoute/localization";
 import download from "../route/download/localization";
 import length from "../route/options/length/localization";
 import options from "../route/options/localization";
+import position from "../route/position/localization";
 
 const m = {
     en: {
@@ -12,6 +13,7 @@ const m = {
         startPoint: startPoint.en,
         length: length.en,
         options: options.en,
+        position: position.en,
     },
     de: {
         download: download.de,
@@ -19,6 +21,7 @@ const m = {
         startPoint: startPoint.de,
         length: length.de,
         options: options.de,
+        position: position.de,
     },
 };
 
