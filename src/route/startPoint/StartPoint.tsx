@@ -1,7 +1,7 @@
 import { LeafletMouseEvent } from "leaflet";
 import { Marker, useMapEvents } from "react-leaflet";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
-import { selectStartPoint, setStartPoint, unsetStartPoint } from "../routeSlice";
+import { selectStartPoint, setStartPoint, resetRoute } from "../routeSlice";
 import { Button } from "../../leaflet/Button";
 import { messages } from "../../localization/localization";
 import EditLocationAlt from "@mui/icons-material/EditLocationAlt";
@@ -26,7 +26,7 @@ export function StartPoint() {
         <>
             <Divider />
             <Marker position={startPoint} />
-            <Button label={messages.startPoint.new} onClick={() => dispatch(unsetStartPoint())}>
+            <Button label={messages.startPoint.new} onClick={() => dispatch(resetRoute(true))}>
                 <EditLocationAlt />
             </Button>
         </>

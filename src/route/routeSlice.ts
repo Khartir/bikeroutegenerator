@@ -29,43 +29,56 @@ interface RouteState extends GPXData {
     options: {
         length: number;
         profile: Profile | "";
+        open: boolean;
     };
 }
 
-const initialState: RouteState = {
+const noRoute = {
     route: "",
-    loading: "idle",
     startPoint: null,
     bounds: null,
     distance: 0,
     elevation: 0,
+};
+
+const initialState: RouteState = {
+    loading: "idle",
     options: {
         length: 50,
         profile: "",
+        open: true,
     },
+    ...noRoute,
 };
 
 const routeSlice = createSlice({
     name: "route",
     initialState,
     reducers: {
-        resetRoute: (state) => {
-            state.route = "";
+        resetRoute: (state, { payload }: PayloadAction<boolean>) => {
+            let { startPoint } = state;
+            if (payload) {
+                startPoint = null;
+            }
+            return { ...state, ...noRoute, startPoint };
         },
-        setStartPoint: (state, action: PayloadAction<PseudoLatLng>) => {
-            state.startPoint = action.payload;
+        setStartPoint: (state, { payload }: PayloadAction<PseudoLatLng>) => {
+            state.startPoint = payload;
+            if (!state.options.length || !state.options.profile) {
+                state.options.open = true;
+            }
         },
-        unsetStartPoint: (state) => {
-            state.startPoint = null;
+        gpxParsed: (state, { payload }: PayloadAction<GPXData>) => {
+            return { ...state, ...payload };
         },
-        gpxParsed: (state, action: PayloadAction<GPXData>) => {
-            return { ...state, ...action.payload };
+        setDesiredLength: (state, { payload }: PayloadAction<number>) => {
+            state.options.length = payload;
         },
-        setDesiredLength: (state, action: PayloadAction<number>) => {
-            state.options.length = action.payload;
+        setProfile: (state, { payload }: PayloadAction<Profile>) => {
+            state.options.profile = payload;
         },
-        setProfile: (state, action: PayloadAction<Profile>) => {
-            state.options.profile = action.payload;
+        toggleOptions: (state, { payload }: PayloadAction<boolean>) => {
+            state.options.open = payload;
         },
     },
     extraReducers: (builder) => {
@@ -75,8 +88,7 @@ const routeSlice = createSlice({
     },
 });
 
-export const { resetRoute, setStartPoint, unsetStartPoint, gpxParsed, setDesiredLength, setProfile } =
-    routeSlice.actions;
+export const { resetRoute, setStartPoint, gpxParsed, setDesiredLength, setProfile, toggleOptions } = routeSlice.actions;
 
 export const selectRoute = (state: RootState) => state.route.route;
 
@@ -97,5 +109,6 @@ export const selectInfo = ({ route: { distance, elevation } }: RootState) => {
 
 export const selectDesiredLength = (state: RootState) => state.route.options.length;
 export const selectProfile = (state: RootState) => state.route.options.profile;
+export const selectOptionsState = (state: RootState) => state.route.options.open;
 
 export default routeSlice.reducer;

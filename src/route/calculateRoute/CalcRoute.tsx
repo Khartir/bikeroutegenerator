@@ -32,7 +32,7 @@ export function CalcRoute() {
         <Button
             label={label}
             onClick={() => {
-                dispatch(resetRoute());
+                dispatch(resetRoute(false));
                 dispatch(fetchRoute({ startPoint, length, profile }));
             }}
         >

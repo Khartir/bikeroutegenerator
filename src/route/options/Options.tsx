@@ -11,6 +11,8 @@ import DialogContent from "@mui/material/DialogContent";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
 import Grid from "@mui/material/Grid";
+import { useAppDispatch, useAppSelector } from "../../state/hooks";
+import { selectOptionsState, toggleOptions } from "../routeSlice";
 
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
     "& .MuiDialogContent-root": {
@@ -45,9 +47,10 @@ const BootstrapDialogTitle = ({ children, onClose }: DialogTitleProps) => {
 };
 
 export default function Options() {
-    const [open, setOpen] = useState(false);
-    const handleOpen = () => setOpen(true);
-    const handleClose = () => setOpen(false);
+    const open = useAppSelector(selectOptionsState);
+    const dispatch = useAppDispatch();
+    const handleOpen = () => dispatch(toggleOptions(true));
+    const handleClose = () => dispatch(toggleOptions(false));
 
     return (
         <div>
