@@ -1,11 +1,7 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from "redux-persist";
 import storage from "redux-persist/lib/storage";
-import startPointReducer from "../route/startPoint/startPointSlice";
-import routeReducer from "../route/calculateRoute/routeSlice";
-import lengthReducer from "../route/options/length/lengthSlice";
-import profileReducer from "../route/options/profile/profileSlice";
-import boundsReducer from "../route/position/boundsSlice";
+import routeReducer from "../route/routeSlice";
 
 const persistConfig = {
     key: "root",
@@ -14,11 +10,7 @@ const persistConfig = {
 };
 
 const rootReducer = combineReducers({
-    startPoint: startPointReducer,
     route: routeReducer,
-    length: lengthReducer,
-    bounds: boundsReducer,
-    profile: profileReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

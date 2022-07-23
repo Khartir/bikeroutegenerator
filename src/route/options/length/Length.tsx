@@ -1,10 +1,10 @@
 import { TextField } from "@mui/material";
 import { messages } from "../../../localization/localization";
 import { useAppDispatch, useAppSelector } from "../../../state/hooks";
-import { selectLength, setLength } from "./lengthSlice";
+import { selectDesiredLength, setDesiredLength } from "../../routeSlice";
 
 export const Length = () => {
-    const length = useAppSelector(selectLength);
+    const length = useAppSelector(selectDesiredLength);
     const dispatch = useAppDispatch();
     return (
         <TextField
@@ -14,7 +14,7 @@ export const Length = () => {
             label={messages.length.label}
             value={length}
             size="small"
-            onChange={(e) => dispatch(setLength(parseInt(e.target.value)))}
+            onChange={(e) => dispatch(setDesiredLength(parseInt(e.target.value)))}
         />
     );
 };

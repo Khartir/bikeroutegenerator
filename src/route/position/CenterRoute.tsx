@@ -2,7 +2,7 @@ import { Button } from "../../leaflet/Button";
 import CenterFocusStrongIcon from "@mui/icons-material/CenterFocusStrong";
 import { useMap } from "react-leaflet";
 import { useAppSelector } from "../../state/hooks";
-import { selectBounds } from "./boundsSlice";
+import { selectBounds } from "../routeSlice";
 import { messages } from "../../localization/localization";
 
 export function CenterRoute() {

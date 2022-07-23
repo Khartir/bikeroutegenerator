@@ -1,5 +1,5 @@
 import { useAppSelector } from "../../state/hooks";
-import { selectRoute } from "../calculateRoute/routeSlice";
+import { selectRoute } from "../routeSlice";
 import { Button } from "../../leaflet/Button";
 import { messages } from "../../localization/localization";
 import DownloadIcon from "@mui/icons-material/Download";

@@ -2,7 +2,7 @@ import styled from "@emotion/styled";
 import { Grid, Typography } from "@mui/material";
 import { messages } from "../localization/localization";
 import { useAppSelector } from "../state/hooks";
-import { selectInfo } from "./position/boundsSlice";
+import { selectInfo } from "./routeSlice";
 
 const Item = styled(Grid)({
     textAlign: "center",
@@ -23,7 +23,6 @@ export function RouteInfo() {
             </Item>
             <Item item xs={6}>
                 <Typography>
-                    {" "}
                     {messages.routeInfo.elevation}: {elevation.toFixed(2)} m
                 </Typography>
             </Item>

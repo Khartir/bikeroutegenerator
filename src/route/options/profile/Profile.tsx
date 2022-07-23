@@ -1,11 +1,11 @@
 import { useAppDispatch, useAppSelector } from "../../../state/hooks";
-import { selectProfile, setProfile } from "./profileSlice";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select, { SelectChangeEvent } from "@mui/material/Select";
 import { messages } from "../../../localization/localization";
 import { Profile as ProfileType, profiles } from "../../../routing/routeAPI";
+import { selectProfile, setProfile } from "../../routeSlice";
 
 export function Profile() {
     const profile = useAppSelector(selectProfile);

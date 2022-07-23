@@ -1,17 +1,21 @@
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
-import { selectLength } from "../options/length/lengthSlice";
-import { fetchRoute, resetRoute, selectRoute } from "./routeSlice";
-import { selectStartPoint } from "../startPoint/startPointSlice";
+import {
+    fetchRoute,
+    resetRoute,
+    selectDesiredLength,
+    selectRoute,
+    selectStartPoint,
+    selectProfile,
+} from "../routeSlice";
 import { Button } from "../../leaflet/Button";
 import { messages } from "../../localization/localization";
 import Route from "@mui/icons-material/Route";
 import AltRoute from "@mui/icons-material/AltRoute";
-import { selectProfile } from "../options/profile/profileSlice";
 
 export function CalcRoute() {
     const startPoint = useAppSelector(selectStartPoint);
     const route = useAppSelector(selectRoute);
-    const length = useAppSelector(selectLength);
+    const length = useAppSelector(selectDesiredLength);
     const profile = useAppSelector(selectProfile);
     const dispatch = useAppDispatch();
     if (!startPoint || !profile) {
