@@ -25,7 +25,11 @@ export function StartPoint() {
     return (
         <>
             <Divider />
-            <Marker position={startPoint} />
+            <Marker
+                position={startPoint}
+                draggable={true}
+                eventHandlers={{ move: (e) => dispatch(setStartPoint({ ...(e as LeafletMouseEvent).latlng })) }}
+            />
             <Button label={messages.startPoint.new} onClick={() => dispatch(resetRoute(true))}>
                 <EditLocationAlt />
             </Button>
