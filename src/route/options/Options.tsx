@@ -1,22 +1,47 @@
 import { useState } from "react";
-import Stack from "@mui/material/Stack";
-import Modal from "@mui/material/Modal";
 import { Length } from "./length/Length";
 import { Button } from "../../leaflet/Button";
 import { messages } from "../../localization/localization";
 import Settings from "@mui/icons-material/Settings";
 import { Profile } from "./profile/Profile";
+import { styled } from "@mui/material/styles";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import IconButton from "@mui/material/IconButton";
+import CloseIcon from "@mui/icons-material/Close";
+import Grid from "@mui/material/Grid";
 
-const style = {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: 400,
-    bgcolor: "background.paper",
-    border: "2px solid #000",
-    boxShadow: 24,
-    p: 4,
+const BootstrapDialog = styled(Dialog)(({ theme }) => ({
+    "& .MuiDialogContent-root": {
+        padding: theme.spacing(2),
+    },
+}));
+
+interface DialogTitleProps {
+    id: string;
+    children?: React.ReactNode;
+    onClose: () => void;
+}
+
+const BootstrapDialogTitle = ({ children, onClose }: DialogTitleProps) => {
+    return (
+        <DialogTitle sx={{ m: 0, p: 2 }}>
+            {children}
+            <IconButton
+                aria-label={messages.actions.close}
+                onClick={onClose}
+                sx={{
+                    position: "absolute",
+                    right: 8,
+                    top: 8,
+                    color: (theme) => theme.palette.grey[500],
+                }}
+            >
+                <CloseIcon />
+            </IconButton>
+        </DialogTitle>
+    );
 };
 
 export default function Options() {
@@ -26,15 +51,24 @@ export default function Options() {
 
     return (
         <div>
-            <Button label={messages.options.label} onClick={handleOpen}>
+            <Button label={messages.options.title} onClick={handleOpen}>
                 <Settings />
             </Button>
-            <Modal open={open} onClose={handleClose}>
-                <Stack sx={style} spacing={2}>
-                    <Length />
-                    <Profile />
-                </Stack>
-            </Modal>
+            <BootstrapDialog onClose={handleClose} aria-labelledby="options-dialog-title" open={open}>
+                <BootstrapDialogTitle id="options-dialog-title" onClose={handleClose}>
+                    {messages.options.title}
+                </BootstrapDialogTitle>
+                <DialogContent dividers>
+                    <Grid container spacing={2}>
+                        <Grid item xs={12}>
+                            <Length />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Profile />
+                        </Grid>
+                    </Grid>
+                </DialogContent>
+            </BootstrapDialog>
         </div>
     );
 }

@@ -1,6 +1,7 @@
 import { MouseEvent, ReactNode } from "react";
 import { useRegisterWithLeaflet } from "./leafletHelpers";
 import IconButton from "@mui/material/IconButton";
+import Tooltip from "@mui/material/Tooltip";
 
 export function Button({
     label,
@@ -14,9 +15,11 @@ export function Button({
     const disableRef = useRegisterWithLeaflet();
     return (
         <>
-            <IconButton onClick={onClick} ref={disableRef} aria-labelledby={label}>
-                {children}
-            </IconButton>
+            <Tooltip title={label} placement="left">
+                <IconButton onClick={onClick} ref={disableRef} aria-labelledby={label}>
+                    {children}
+                </IconButton>
+            </Tooltip>
         </>
     );
 }

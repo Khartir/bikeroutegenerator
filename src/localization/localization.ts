@@ -18,6 +18,9 @@ const m = {
         position: position.en,
         profile: profile.en,
         routeInfo: routeInfo.en,
+        actions: {
+            close: "close",
+        },
     },
     de: {
         download: download.de,
@@ -28,6 +31,9 @@ const m = {
         position: position.de,
         profile: profile.de,
         routeInfo: routeInfo.de,
+        actions: {
+            close: "Schließen",
+        },
     },
 };
 

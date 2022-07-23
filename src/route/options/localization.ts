@@ -1,8 +1,8 @@
 export default {
     en: {
-        label: "options",
+        title: "Options",
     },
     de: {
-        label: "Optionen",
+        title: "Optionen",
     },
 };
