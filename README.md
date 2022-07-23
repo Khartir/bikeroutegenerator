@@ -1,6 +1,6 @@
-# Bike route creator
+# Bike route generator
 
-See https://khartir.github.io/bikeroutecreator for the running app.
+See https://khartir.github.io/bikeroutegenerator for the running app.
 
 Inspired by https://github.com/stesie/routebot
 

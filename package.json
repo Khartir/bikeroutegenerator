@@ -70,5 +70,5 @@
     "eslint-plugin-prettier": "^4.2.1",
     "prettier": "^2.7.1"
   },
-  "homepage": "https://khartir.github.io/bikeroutecreator"
+  "homepage": "https://khartir.github.io/bikeroutegenerator"
 }
