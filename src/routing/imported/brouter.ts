@@ -31,9 +31,7 @@ export async function getWaypoints(
     const [...polyPoints] = poly.geometry.coordinates[0];
     if (!ccw) polyPoints.reverse();
 
-    const pairs = collectPosPairs(polyPoints);
-    const route = await Promise.all(pairs.map((pair) => callRouter(pair, profile, debug)));
-
+    const route = await makeRoute(polyPoints, profile, debug);
     const fixes = findAllDeadEnds(startPoint, route, debug);
     log("found fixes", fixes);
 
@@ -43,6 +41,11 @@ export async function getWaypoints(
         fixedPoints.push(fix ? fix[1] : polyPoints[i]);
     }
     return fixedPoints;
+}
+
+export async function makeRoute(polyPoints: Position[], profile: string, debug: DebugCollectors) {
+    const pairs = collectPosPairs(polyPoints);
+    return Promise.all(pairs.map((pair) => callRouter(pair, profile, debug)));
 }
 
 function collectPosPairs(points: Position[]): [Position, Position][] {

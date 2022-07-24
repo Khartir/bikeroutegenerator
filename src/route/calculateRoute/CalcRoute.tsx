@@ -1,6 +1,6 @@
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
 import {
-    fetchRoute,
+    fetchWayPointsAndRoute,
     resetRoute,
     selectDesiredLength,
     selectRoute,
@@ -33,7 +33,7 @@ export function CalcRoute() {
             label={label}
             onClick={() => {
                 dispatch(resetRoute(false));
-                dispatch(fetchRoute({ startPoint, length, profile }));
+                dispatch(fetchWayPointsAndRoute({ startPoint, length, profile }));
             }}
         >
             <Icon />

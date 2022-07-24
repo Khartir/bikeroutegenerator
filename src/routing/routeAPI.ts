@@ -4,6 +4,7 @@ import { addDebugFeature } from "../route/routeSlice";
 import { AppDispatch } from "../state/store";
 import { debugEnabled } from "./imported/debug";
 import { makeRandomRoute } from "./imported/route";
+import { makeRoute as routerMakeRoute } from "./imported/brouter";
 
 export interface GetRouteArgs {
     startPoint: LatLng;
@@ -11,12 +12,15 @@ export interface GetRouteArgs {
     profile: Profile;
 }
 
-export async function getRoute({ startPoint, length, profile }: GetRouteArgs, dispatch: AppDispatch) {
+export async function getWaypoints({ startPoint, length, profile }: GetRouteArgs, dispatch: AppDispatch) {
     const debug = getDebugSetters(dispatch);
     const startAsTurfPoint = point([startPoint.lng, startPoint.lat]);
-    const gpxUrl = await makeRandomRoute({ startPoint: startAsTurfPoint, length, profile, debug });
-    const gpxData = await (await fetch(gpxUrl)).text();
-    return gpxData;
+    return makeRandomRoute({ startPoint: startAsTurfPoint, length, profile, debug });
+}
+
+export async function makeRoute(wayPoints: Position[], profile: Profile, dispatch: AppDispatch) {
+    const debug = getDebugSetters(dispatch);
+    return routerMakeRoute(wayPoints, profile, debug);
 }
 
 export const profiles = {

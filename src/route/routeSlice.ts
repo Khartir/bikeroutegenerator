@@ -1,11 +1,17 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Feature } from "@turf/helpers";
+import { Feature, LineString, Position } from "@turf/helpers";
 import { LatLng, LatLngBounds } from "leaflet";
-import { getRoute, GetRouteArgs, Profile } from "../routing/routeAPI";
+import { getWaypoints, GetRouteArgs, Profile, makeRoute } from "../routing/routeAPI";
 import { AppDispatch, RootState } from "../state/store";
 
-export const fetchRoute = createAsyncThunk("route/newRoute", (args: GetRouteArgs, { dispatch }) =>
-    getRoute(args, dispatch as AppDispatch)
+export const fetchWayPointsAndRoute = createAsyncThunk(
+    "route/newWayPoints",
+    async (args: GetRouteArgs, { dispatch }) => {
+        const wayPoints = await getWaypoints(args, dispatch as AppDispatch);
+        const route = await makeRoute(wayPoints, args.profile, dispatch as AppDispatch);
+
+        return { wayPoints, route };
+    }
 );
 
 export interface PseudoLatLng {
@@ -26,7 +32,8 @@ interface GPXData {
 }
 
 interface RouteState extends GPXData {
-    route: string;
+    route: Feature<LineString>[];
+    wayPoints: Position[];
     loading: "idle" | "pending" | "succeeded" | "failed";
     startPoint: PseudoLatLng | null;
     options: {
@@ -38,7 +45,8 @@ interface RouteState extends GPXData {
 }
 
 const noRoute = {
-    route: "",
+    route: [],
+    wayPoints: [],
     startPoint: null,
     bounds: null,
     distance: 0,
@@ -88,21 +96,37 @@ const routeSlice = createSlice({
         addDebugFeature: (state, { payload }: PayloadAction<Feature>) => {
             state.debugFeatures.push(payload);
         },
+        moveWayPoint: (
+            state,
+            { payload: { index, position } }: PayloadAction<{ index: number; position: Position }>
+        ) => {
+            state.wayPoints[index] = position;
+        },
     },
     extraReducers: (builder) => {
-        builder.addCase(fetchRoute.fulfilled, (state, action) => {
-            state.route = action.payload;
+        builder.addCase(fetchWayPointsAndRoute.fulfilled, (state, action) => {
+            state.wayPoints = action.payload.wayPoints;
+            state.route = action.payload.route;
         });
-        builder.addCase(fetchRoute.rejected, (state, action) => {
+        builder.addCase(fetchWayPointsAndRoute.rejected, (state, action) => {
             console.log(action.error);
         });
     },
 });
 
-export const { resetRoute, setStartPoint, gpxParsed, setDesiredLength, setProfile, toggleOptions, addDebugFeature } =
-    routeSlice.actions;
+export const {
+    resetRoute,
+    setStartPoint,
+    gpxParsed,
+    setDesiredLength,
+    setProfile,
+    toggleOptions,
+    addDebugFeature,
+    moveWayPoint,
+} = routeSlice.actions;
 
 export const selectRoute = (state: RootState) => state.route.route;
+export const selectWayPoints = (state: RootState) => state.route.wayPoints;
 
 export const selectStartPoint = ({ route: { startPoint } }: RootState) =>
     startPoint ? denormalizeLatLng(startPoint) : null;
@@ -125,3 +149,9 @@ export default routeSlice.reducer;
 function denormalizeLatLng({ lat, lng, alt }: PseudoLatLng) {
     return new LatLng(lat, lng, alt);
 }
+
+// const fetchRoute = createAsyncThunk(
+//     "route/newRoute",
+//     ({ wayPoints, profile }: { wayPoints: Position[]; profile: Profile }, { dispatch }) =>
+//         makeRoute(wayPoints, profile, dispatch as AppDispatch)
+// );

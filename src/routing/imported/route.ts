@@ -3,8 +3,8 @@ import circle from "@turf/circle";
 import { debugCollectors, DebugCollectors, log } from "./debug";
 import { snapPolygonToRoad } from "./overpass";
 import { equalPos, findMinDistancePosIndex } from "./distance";
-import { polygonToGpxUrl } from "./brouter";
 import { Profile } from "../routeAPI";
+import { getWaypoints } from "./brouter";
 
 export async function makeRandomRoute({
     startPoint,
@@ -20,7 +20,7 @@ export async function makeRandomRoute({
     profile: Profile;
     steps?: number;
     debug: DebugCollectors;
-}): Promise<string> {
+}) {
     const radius = length / Math.PI / 2;
     log("going w/ radius", radius);
 
@@ -31,7 +31,7 @@ export async function makeRandomRoute({
     const poly2 = await snapPolygonToRoad(startPoint, poly1b, profile);
     debug.addDebugFeature(poly2);
 
-    return polygonToGpxUrl(startPoint, poly2, ccw, profile, debug);
+    return getWaypoints(startPoint, poly2, ccw, profile, debug);
 }
 
 function shiftToStartPoint(startPoint: Feature<Point>, poly1: Feature<Polygon>): Feature<Polygon> {
