@@ -1,6 +1,6 @@
 import { Feature, FeatureCollection, LineString, Point, Polygon, Position } from "@turf/helpers";
 import { Profile } from "../routeAPI";
-import { addDebugFeature, addDebugPosition, log } from "./debug";
+import { debugCollectors, DebugCollectors, log } from "./debug";
 import { equalPos } from "./distance";
 
 const baseUrl = "https://brouter-api.brokenpipe.de/brouter";
@@ -9,15 +9,32 @@ export async function polygonToGpxUrl(
     startPoint: Feature<Point>,
     poly: Feature<Polygon>,
     ccw: boolean,
-    profile: Profile
+    profile: Profile,
+    debug: DebugCollectors = debugCollectors
 ) {
-    const polyPoints = poly.geometry.coordinates[0];
+    const fixedPoints: Position[] = await getWaypoints(startPoint, poly, ccw, profile, debug);
+
+    const lonlats = fixedPoints.map((x) => x.join(",")).join("|");
+    const url = `${baseUrl}?lonlats=${lonlats}&profile=${profile}&alternativeidx=0&format=gpx`;
+    log("brouter gpx url", url);
+
+    return url;
+}
+
+export async function getWaypoints(
+    startPoint: Feature<Point>,
+    poly: Feature<Polygon>,
+    ccw: boolean,
+    profile: Profile,
+    debug: DebugCollectors = debugCollectors
+) {
+    const [...polyPoints] = poly.geometry.coordinates[0];
     if (!ccw) polyPoints.reverse();
 
     const pairs = collectPosPairs(polyPoints);
-    const route = await Promise.all(pairs.map((pair) => callRouter(pair, profile)));
+    const route = await Promise.all(pairs.map((pair) => callRouter(pair, profile, debug)));
 
-    const fixes = findAllDeadEnds(startPoint, route);
+    const fixes = findAllDeadEnds(startPoint, route, debug);
     log("found fixes", fixes);
 
     const fixedPoints: Position[] = [];
@@ -25,12 +42,7 @@ export async function polygonToGpxUrl(
         const fix = fixes.find((f) => equalPos(polyPoints[i], f[0]));
         fixedPoints.push(fix ? fix[1] : polyPoints[i]);
     }
-
-    const lonlats = fixedPoints.map((x) => x.join(",")).join("|");
-    const url = `${baseUrl}?lonlats=${lonlats}&profile=${profile}&alternativeidx=0&format=gpx`;
-    log("brouter gpx url", url);
-
-    return url;
+    return fixedPoints;
 }
 
 function collectPosPairs(points: Position[]): [Position, Position][] {
@@ -43,7 +55,11 @@ function collectPosPairs(points: Position[]): [Position, Position][] {
     return result;
 }
 
-async function callRouter(pair: [Position, Position], profile: string): Promise<Feature<LineString>> {
+async function callRouter(
+    pair: [Position, Position],
+    profile: string,
+    { addDebugFeature }: DebugCollectors
+): Promise<Feature<LineString>> {
     const lonlats = pair.map((x) => x.join(",")).join("|");
     const url = `${baseUrl}?lonlats=${lonlats}&profile=${profile}&alternativeidx=0&format=geojson`;
     log("calling brouter w/", url);
@@ -51,12 +67,17 @@ async function callRouter(pair: [Position, Position], profile: string): Promise<
 
     const result: FeatureCollection<LineString> = (await response.json()) as any;
     result.features[0].properties!.stroke = "#f00";
+    result.features[0].properties!.debugLabel = "dead end";
     addDebugFeature(result.features[0]);
 
     return result.features[0];
 }
 
-function findAllDeadEnds(startPoint: Feature<Point>, route: Feature<LineString>[]): [Position, Position][] {
+function findAllDeadEnds(
+    startPoint: Feature<Point>,
+    route: Feature<LineString>[],
+    debug: DebugCollectors
+): [Position, Position][] {
     const fixes: [Position, Position][] = [];
     for (let segment = 0; segment < route.length - 1; segment++) {
         const seg = route[segment].geometry.coordinates;
@@ -64,19 +85,27 @@ function findAllDeadEnds(startPoint: Feature<Point>, route: Feature<LineString>[
             continue;
         }
 
-        const fix = findDeadEndOnRoute(seg, route[segment + 1].geometry.coordinates);
+        const fix = findDeadEndOnRoute(seg, route[segment + 1].geometry.coordinates, debug);
         if (fix) fixes.push(fix);
     }
 
     if (!equalPos(route[0].geometry.coordinates[0].slice(0, 2), startPoint.geometry.coordinates)) {
-        const fix = findDeadEndOnRoute(route[route.length - 1].geometry.coordinates, route[0].geometry.coordinates);
+        const fix = findDeadEndOnRoute(
+            route[route.length - 1].geometry.coordinates,
+            route[0].geometry.coordinates,
+            debug
+        );
         if (fix) fixes.push(fix);
     }
 
     return fixes;
 }
 
-function findDeadEndOnRoute(segA: Position[], segB: Position[]): undefined | [Position, Position] {
+function findDeadEndOnRoute(
+    segA: Position[],
+    segB: Position[],
+    { addDebugPosition }: DebugCollectors
+): undefined | [Position, Position] {
     const maxOffset = Math.min(segA.length, segB.length);
 
     let offA = 0;
@@ -95,6 +124,6 @@ function findDeadEndOnRoute(segA: Position[], segB: Position[]): undefined | [Po
 
     if (offA === 1) return;
 
-    addDebugPosition(segB[offB - 1], { "marker-color": "#d00" });
+    addDebugPosition(segB[offB - 1], { "marker-color": "#d00", debugLabel: "Waypoint" });
     return [segB[0], segB[offB - 1]];
 }

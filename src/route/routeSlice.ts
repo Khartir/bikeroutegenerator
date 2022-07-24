@@ -1,9 +1,12 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { Feature } from "@turf/helpers";
 import { LatLng, LatLngBounds } from "leaflet";
-import { getRoute, Profile } from "../routing/routeAPI";
-import { RootState } from "../state/store";
+import { getRoute, GetRouteArgs, Profile } from "../routing/routeAPI";
+import { AppDispatch, RootState } from "../state/store";
 
-export const fetchRoute = createAsyncThunk("route/newRoute", getRoute);
+export const fetchRoute = createAsyncThunk("route/newRoute", (args: GetRouteArgs, { dispatch }) =>
+    getRoute(args, dispatch as AppDispatch)
+);
 
 export interface PseudoLatLng {
     lat: number;
@@ -31,6 +34,7 @@ interface RouteState extends GPXData {
         profile: Profile | "";
         open: boolean;
     };
+    debugFeatures: Feature[];
 }
 
 const noRoute = {
@@ -39,6 +43,7 @@ const noRoute = {
     bounds: null,
     distance: 0,
     elevation: 0,
+    debugFeatures: [],
 };
 
 const initialState: RouteState = {
@@ -80,28 +85,30 @@ const routeSlice = createSlice({
         toggleOptions: (state, { payload }: PayloadAction<boolean>) => {
             state.options.open = payload;
         },
+        addDebugFeature: (state, { payload }: PayloadAction<Feature>) => {
+            state.debugFeatures.push(payload);
+        },
     },
     extraReducers: (builder) => {
         builder.addCase(fetchRoute.fulfilled, (state, action) => {
             state.route = action.payload;
         });
+        builder.addCase(fetchRoute.rejected, (state, action) => {
+            console.log(action.error);
+        });
     },
 });
 
-export const { resetRoute, setStartPoint, gpxParsed, setDesiredLength, setProfile, toggleOptions } = routeSlice.actions;
+export const { resetRoute, setStartPoint, gpxParsed, setDesiredLength, setProfile, toggleOptions, addDebugFeature } =
+    routeSlice.actions;
 
 export const selectRoute = (state: RootState) => state.route.route;
 
 export const selectStartPoint = ({ route: { startPoint } }: RootState) =>
-    startPoint ? new LatLng(startPoint.lat, startPoint.lng, startPoint.alt) : null;
+    startPoint ? denormalizeLatLng(startPoint) : null;
 
 export const selectBounds = ({ route: { bounds } }: RootState) =>
-    bounds
-        ? new LatLngBounds(
-              new LatLng(bounds.southWest.lat, bounds.southWest.lng, bounds.southWest.alt),
-              new LatLng(bounds.northEast.lat, bounds.northEast.lng, bounds.northEast.alt)
-          )
-        : null;
+    bounds ? new LatLngBounds(denormalizeLatLng(bounds.southWest), denormalizeLatLng(bounds.northEast)) : null;
 
 export const selectInfo = ({ route: { distance, elevation } }: RootState) => {
     return { distance, elevation };
@@ -111,4 +118,10 @@ export const selectDesiredLength = (state: RootState) => state.route.options.len
 export const selectProfile = (state: RootState) => state.route.options.profile;
 export const selectOptionsState = (state: RootState) => state.route.options.open;
 
+export const selectDebugFeatures = ({ route: { debugFeatures } }: RootState) => debugFeatures;
+
 export default routeSlice.reducer;
+
+function denormalizeLatLng({ lat, lng, alt }: PseudoLatLng) {
+    return new LatLng(lat, lng, alt);
+}

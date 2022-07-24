@@ -14,11 +14,18 @@ export function getDebugFeatureCollection() {
     return featureCollection(features);
 }
 
-const enabled = false;
+export const debugEnabled = false;
 
 export function log(...values: any) {
-    if (!enabled) {
+    if (!debugEnabled) {
         return;
     }
     console.log(...values);
 }
+
+export const debugCollectors = {
+    addDebugFeature,
+    addDebugPosition,
+};
+
+export type DebugCollectors = typeof debugCollectors;

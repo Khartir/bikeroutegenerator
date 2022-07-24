@@ -19,7 +19,12 @@ export async function snapPolygonToRoad(startPoint: Feature<Point>, poly: Featur
 
     snapped.push(snapped[0]);
 
-    const newPoly = polygon([snapped], { "fill-opacity": 0, stroke: "#aa0", "stroke-width": 4 });
+    const newPoly = polygon([snapped], {
+        "fill-opacity": 0,
+        stroke: "#aa0",
+        "stroke-width": 4,
+        debugLabel: "snappedToRoad",
+    });
     return newPoly;
 }
 

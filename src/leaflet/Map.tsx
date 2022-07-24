@@ -1,6 +1,8 @@
 import { MapContainer, TileLayer } from "react-leaflet";
+import { Debug } from "../route/Debug";
 import { Route } from "../route/Route";
 import { RouteForm } from "../route/RouteForm";
+import { debugEnabled } from "../routing/imported/debug";
 
 export function Map() {
     return (
@@ -11,6 +13,7 @@ export function Map() {
             />
             <RouteForm />
             <Route />
+            {debugEnabled && <Debug />}
         </MapContainer>
     );
 }

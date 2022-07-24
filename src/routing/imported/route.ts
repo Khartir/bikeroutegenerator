@@ -1,34 +1,41 @@
 import { Feature, Point, polygon, Polygon, Position } from "@turf/helpers";
 import circle from "@turf/circle";
-import { addDebugFeature, addDebugPosition, log } from "./debug";
+import { debugCollectors, DebugCollectors, log } from "./debug";
 import { snapPolygonToRoad } from "./overpass";
 import { equalPos, findMinDistancePosIndex } from "./distance";
 import { polygonToGpxUrl } from "./brouter";
 import { Profile } from "../routeAPI";
 
-export async function makeRandomRoute(
-    startPoint: Feature<Point>,
-    length: number,
-    ccw: boolean,
-    profile: Profile,
-    steps = 5
-): Promise<string> {
+export async function makeRandomRoute({
+    startPoint,
+    length,
+    ccw = false,
+    profile,
+    steps = 5,
+    debug = debugCollectors,
+}: {
+    startPoint: Feature<Point>;
+    length: number;
+    ccw?: boolean;
+    profile: Profile;
+    steps?: number;
+    debug: DebugCollectors;
+}): Promise<string> {
     const radius = length / Math.PI / 2;
     log("going w/ radius", radius);
 
-    const center = findRandomCenterPos(startPoint, radius);
-    const poly1 = findRandomCheckpointPolygon(center, radius, steps, startPoint);
+    const center = findRandomCenterPos(startPoint, radius, debug);
+    const poly1 = findRandomCheckpointPolygon(center, radius, steps, startPoint, debug);
     const poly1b = shiftToStartPoint(startPoint, poly1);
 
     const poly2 = await snapPolygonToRoad(startPoint, poly1b, profile);
-    log(JSON.stringify(poly2));
-    addDebugFeature(poly2);
+    debug.addDebugFeature(poly2);
 
-    return polygonToGpxUrl(startPoint, poly2, ccw, profile);
+    return polygonToGpxUrl(startPoint, poly2, ccw, profile, debug);
 }
 
 function shiftToStartPoint(startPoint: Feature<Point>, poly1: Feature<Polygon>): Feature<Polygon> {
-    const points = poly1.geometry.coordinates[0];
+    const [...points] = poly1.geometry.coordinates[0];
 
     while (!equalPos(points[0], startPoint.geometry.coordinates)) {
         points.pop();
@@ -44,9 +51,12 @@ function findRandomCheckpointPolygon(
     center: Position,
     radius: number,
     steps: number,
-    startPoint: Feature<Point>
+    startPoint: Feature<Point>,
+    { addDebugFeature }: DebugCollectors
 ): Feature<Polygon> {
     const c2 = circle(center, radius, { steps });
+    c2.properties || (c2.properties = {});
+    c2.properties.debugLabel = "c2";
     const minDistanceIndex = findMinDistancePosIndex(startPoint, c2.geometry.coordinates[0]);
 
     c2.geometry.coordinates[0].splice(minDistanceIndex, 1, startPoint.geometry.coordinates);
@@ -59,14 +69,20 @@ function findRandomCheckpointPolygon(
     return c2;
 }
 
-function findRandomCenterPos(startPoint: Feature<Point>, radius: number): Position {
-    const c1 = circle(startPoint, radius, { steps: 180, properties: { "fill-opacity": 0.1 } });
+function findRandomCenterPos(
+    startPoint: Feature<Point>,
+    radius: number,
+    { addDebugFeature, addDebugPosition }: DebugCollectors
+): Position {
+    const c1 = circle(startPoint, radius, { steps: 180, properties: { "fill-opacity": 0.1, debugLabel: "c1" } });
+    startPoint.properties || (startPoint.properties = {});
+    startPoint.properties.debugLabel = "startPoint";
     addDebugFeature(startPoint);
     addDebugFeature(c1);
 
     const center = c1.geometry.coordinates[0][Math.floor(Math.random() * c1.geometry.coordinates[0].length)];
     log("chosen random center", center);
-    addDebugPosition(center, { "marker-color": "#0d0" });
+    addDebugPosition(center, { "marker-color": "#0d0", debugLabel: "center" });
 
     return center;
 }
