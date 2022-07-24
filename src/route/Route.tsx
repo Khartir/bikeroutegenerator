@@ -1,15 +1,45 @@
 import { Position } from "@turf/helpers";
-import { LatLng } from "leaflet";
-import { Polyline } from "react-leaflet";
+import { LatLng, Layer } from "leaflet";
+import { useEffect } from "react";
+import { Polyline, useMap } from "react-leaflet";
 import { useAppSelector } from "../state/hooks";
 import { selectRoute } from "./routeSlice";
+//@ts-ignore
+import L from "leaflet-hotline";
 
 export function Route() {
     const route = useAppSelector(selectRoute);
-    if (!route) {
-        return null;
-    }
-    console.log(route);
+    const map = useMap();
+    useEffect(() => {
+        let hotline: Layer | null = null;
+        if (!route || route.length === 0) {
+            return;
+        }
+        const lines = route.map((line) => line.geometry.coordinates.map(turfToLatLng)).flat();
+        let options: { min?: number; max?: number } = {
+            min: undefined,
+            max: undefined,
+        };
+        lines.forEach((coord) => {
+            if (coord.alt === undefined) {
+                return;
+            }
+            if (options.min === undefined || coord.alt < options.min) {
+                options.min = coord.alt;
+            }
+
+            if (options.max === undefined || coord.alt > options.max) {
+                options.max = coord.alt;
+            }
+        });
+        hotline = new L.hotline(lines, options) as Layer;
+        hotline.addTo(map);
+        return () => {
+            hotline?.removeFrom(map);
+        };
+    }, [route, map]);
+    return null;
+    // todo add type switch
     return (
         <>
             {route.map((line, index) => (

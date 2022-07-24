@@ -9,7 +9,7 @@ import togpx from "togpx";
 
 export const Download = () => {
     const route = useAppSelector(selectRoute);
-    if (!route) {
+    if (!route || route.length === 0) {
         return null;
     }
     const points: Position[] = route.reduce(
