@@ -3,17 +3,25 @@ import { selectRoute } from "../routeSlice";
 import { Button } from "../../leaflet/Button";
 import { messages } from "../../localization/localization";
 import DownloadIcon from "@mui/icons-material/Download";
+import { lineString, Position } from "@turf/helpers";
+//@ts-ignore
+import togpx from "togpx";
 
 export const Download = () => {
-    // const route = useAppSelector(selectRoute);
-    // if (!route) {
-    return null;
-    // }
-    // return (
-    //     <Button label={messages.download.label} onClick={() => downloadRoute(route)}>
-    //         <DownloadIcon />
-    //     </Button>
-    // );
+    const route = useAppSelector(selectRoute);
+    if (!route) {
+        return null;
+    }
+    const points: Position[] = route.reduce(
+        (points, line) => points.concat(line.geometry.coordinates),
+        [] as Position[]
+    );
+    const gpx = togpx(lineString(points));
+    return (
+        <Button label={messages.download.label} onClick={() => downloadRoute(gpx)}>
+            <DownloadIcon />
+        </Button>
+    );
 };
 
 const downloadRoute = (gpxData: string) => {
