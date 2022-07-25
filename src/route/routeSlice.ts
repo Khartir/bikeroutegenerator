@@ -103,6 +103,25 @@ const routeSlice = createSlice({
                 state.options.open = true;
             }
         },
+        moveStartPoint: {
+            reducer(state, { payload }: PayloadAction<PseudoLatLng>) {
+                state.startPoint = payload;
+                if (!state.options.length || !state.options.profile) {
+                    state.options.open = true;
+                }
+            },
+            prepare(payload) {
+                return {
+                    payload,
+                    meta: {
+                        throttle: {
+                            time: 300,
+                        },
+                    },
+                };
+            },
+        },
+
         gpxParsed: (state, { payload }: PayloadAction<GPXData>) => {
             return { ...state, ...payload };
         },
@@ -118,11 +137,20 @@ const routeSlice = createSlice({
         addDebugFeature: (state, { payload }: PayloadAction<Feature>) => {
             state.debugFeatures.push(payload);
         },
-        moveWayPoint: (
-            state,
-            { payload: { index, position } }: PayloadAction<{ index: number; position: Position }>
-        ) => {
-            state.wayPoints[index] = position;
+        moveWayPoint: {
+            reducer(state, { payload: { index, position } }: PayloadAction<{ index: number; position: Position }>) {
+                state.wayPoints[index] = position;
+            },
+            prepare(payload) {
+                return {
+                    payload,
+                    meta: {
+                        throttle: {
+                            time: 300,
+                        },
+                    },
+                };
+            },
         },
     },
     extraReducers: (builder) => {
@@ -144,6 +172,7 @@ export const {
     toggleOptions,
     addDebugFeature,
     moveWayPoint,
+    moveStartPoint,
 } = routeSlice.actions;
 
 export const selectRoute = (state: RootState) => state.route.route;

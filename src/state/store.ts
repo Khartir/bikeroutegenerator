@@ -2,6 +2,8 @@ import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import routeReducer from "../route/routeSlice";
+//@ts-ignore
+import createThrottle from "redux-throttle";
 
 const persistConfig = {
     key: "root",
@@ -22,7 +24,7 @@ export const store = configureStore({
             serializableCheck: {
                 ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
             },
-        }),
+        }).concat(createThrottle()),
 });
 
 export type RootState = ReturnType<typeof store.getState>;
