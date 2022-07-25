@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Feature, LineString, Position } from "@turf/helpers";
-import { LatLng, LatLngBounds } from "leaflet";
+import { LatLng, LatLngBounds, FeatureGroup, Polyline } from "leaflet";
+import { turfToLatLng } from "../leaflet/leafletHelpers";
 import { getWaypoints, GetRouteArgs, Profile, makeRoute } from "../routing/routeAPI";
 import { AppDispatch, RootState } from "../state/store";
 
@@ -10,7 +11,28 @@ export const fetchWayPointsAndRoute = createAsyncThunk(
         const wayPoints = await getWaypoints(args, dispatch as AppDispatch);
         const route = await makeRoute(wayPoints, args.profile, dispatch as AppDispatch);
 
-        return { wayPoints, route };
+        let elevation = 0;
+        let distance = 0;
+        const featureGroup = new FeatureGroup();
+
+        route.forEach((segment) => {
+            elevation += parseInt(segment.properties?.["filtered ascend"] ?? 0);
+            distance += parseInt(segment.properties?.["track-length"]);
+            featureGroup.addLayer(new Polyline(segment.geometry.coordinates.map(turfToLatLng)));
+        });
+
+        const bounds = featureGroup.getBounds();
+
+        return {
+            wayPoints,
+            route,
+            elevation,
+            distance,
+            bounds: {
+                southWest: { ...bounds.getSouthWest() },
+                northEast: { ...bounds.getNorthEast() },
+            },
+        };
     }
 );
 
@@ -104,9 +126,8 @@ const routeSlice = createSlice({
         },
     },
     extraReducers: (builder) => {
-        builder.addCase(fetchWayPointsAndRoute.fulfilled, (state, action) => {
-            state.wayPoints = action.payload.wayPoints;
-            state.route = action.payload.route;
+        builder.addCase(fetchWayPointsAndRoute.fulfilled, (state, { payload }) => {
+            return { ...state, ...payload };
         });
         builder.addCase(fetchWayPointsAndRoute.rejected, (state, action) => {
             console.log(action.error);
@@ -149,9 +170,3 @@ export default routeSlice.reducer;
 function denormalizeLatLng({ lat, lng, alt }: PseudoLatLng) {
     return new LatLng(lat, lng, alt);
 }
-
-// const fetchRoute = createAsyncThunk(
-//     "route/newRoute",
-//     ({ wayPoints, profile }: { wayPoints: Position[]; profile: Profile }, { dispatch }) =>
-//         makeRoute(wayPoints, profile, dispatch as AppDispatch)
-// );

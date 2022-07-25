@@ -1,8 +1,8 @@
-import { LatLng, LeafletMouseEvent } from "leaflet";
+import { LeafletMouseEvent } from "leaflet";
 import { Marker } from "react-leaflet";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
-import { moveWayPoint, selectWayPoints, setStartPoint } from "./routeSlice";
-import { Position } from "@turf/helpers";
+import { moveWayPoint, selectWayPoints } from "./routeSlice";
+import { turfToLatLng } from "../leaflet/leafletHelpers";
 
 export function WayPoints() {
     const wayPoints = useAppSelector(selectWayPoints);
@@ -33,8 +33,4 @@ export function WayPoints() {
             ))}
         </>
     );
-}
-
-function turfToLatLng(point: Position) {
-    return new LatLng(point[1], point[0], point[2]);
 }

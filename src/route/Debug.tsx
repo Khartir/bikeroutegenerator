@@ -1,5 +1,5 @@
+import { turfToLatLng } from "../leaflet/leafletHelpers";
 import { Position } from "@turf/helpers";
-import { LatLng } from "leaflet";
 import { Marker, Polyline, Popup } from "react-leaflet";
 import { useAppSelector } from "../state/hooks";
 import { selectDebugFeatures } from "./routeSlice";
@@ -39,8 +39,4 @@ export function Debug() {
             })}
         </>
     );
-}
-
-function turfToLatLng(point: Position) {
-    return new LatLng(point[1], point[0], point[2]);
 }
