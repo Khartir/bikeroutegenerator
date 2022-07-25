@@ -13,7 +13,7 @@ export function Map() {
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             <RouteForm />
-            <WayPoints />
+            {/* <WayPoints /> */}
             <Route />
             {debugEnabled && <Debug />}
         </MapContainer>

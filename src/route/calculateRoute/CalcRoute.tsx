@@ -23,7 +23,7 @@ export function CalcRoute() {
     }
     let label = messages.calculateRoute.firstRoute;
     let Icon = Route;
-    if (route) {
+    if (route.length !== 0) {
         label = messages.calculateRoute.newRoute;
         Icon = AltRoute;
     }
