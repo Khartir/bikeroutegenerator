@@ -4,6 +4,7 @@ import { WayPoints } from "../route/WayPoints";
 import { RouteForm } from "../route/RouteForm";
 import { debugEnabled } from "../routing/imported/debug";
 import { Route } from "../route/Route";
+import { routeIsEditable } from "../route/updateRouteMiddleware";
 
 export function Map() {
     return (
@@ -13,7 +14,7 @@ export function Map() {
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             <RouteForm />
-            {/* <WayPoints /> */}
+            {routeIsEditable && <WayPoints />}
             <Route />
             {debugEnabled && <Debug />}
         </MapContainer>

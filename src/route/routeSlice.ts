@@ -11,27 +11,10 @@ export const fetchWayPointsAndRoute = createAsyncThunk(
         const wayPoints = await getWaypoints(args, dispatch as AppDispatch);
         const route = await makeRoute(wayPoints, args.profile, dispatch as AppDispatch);
 
-        let elevation = 0;
-        let distance = 0;
-        const featureGroup = new FeatureGroup();
-
-        route.forEach((segment) => {
-            elevation += parseInt(segment.properties?.["filtered ascend"] ?? 0);
-            distance += parseInt(segment.properties?.["track-length"]);
-            featureGroup.addLayer(new Polyline(segment.geometry.coordinates.map(turfToLatLng)));
-        });
-
-        const bounds = featureGroup.getBounds();
+        dispatch(updateRoute(route));
 
         return {
             wayPoints,
-            route,
-            elevation,
-            distance,
-            bounds: {
-                southWest: { ...bounds.getSouthWest() },
-                northEast: { ...bounds.getNorthEast() },
-            },
         };
     }
 );
@@ -109,6 +92,11 @@ const routeSlice = createSlice({
                 if (!state.options.length || !state.options.profile) {
                     state.options.open = true;
                 }
+                const lastWaypoint = state.wayPoints.length - 1;
+                if (lastWaypoint > 0) {
+                    state.wayPoints[0] = [payload.lng, payload.lat];
+                    state.wayPoints[lastWaypoint] = [payload.lng, payload.lat];
+                }
             },
             prepare(payload) {
                 return {
@@ -152,6 +140,29 @@ const routeSlice = createSlice({
                 };
             },
         },
+        updateRoute: (state, { payload }: PayloadAction<Feature<LineString>[]>) => {
+            let elevation = 0;
+            let distance = 0;
+            const featureGroup = new FeatureGroup();
+
+            payload.forEach((segment) => {
+                elevation += parseInt(segment.properties?.["filtered ascend"] ?? 0);
+                distance += parseInt(segment.properties?.["track-length"]);
+                featureGroup.addLayer(new Polyline(segment.geometry.coordinates.map(turfToLatLng)));
+            });
+
+            const bounds = featureGroup.getBounds();
+            return {
+                ...state,
+                elevation,
+                distance,
+                bounds: {
+                    southWest: { ...bounds.getSouthWest() },
+                    northEast: { ...bounds.getNorthEast() },
+                },
+                route: payload,
+            };
+        },
     },
     extraReducers: (builder) => {
         builder.addCase(fetchWayPointsAndRoute.fulfilled, (state, { payload }) => {
@@ -173,6 +184,7 @@ export const {
     addDebugFeature,
     moveWayPoint,
     moveStartPoint,
+    updateRoute,
 } = routeSlice.actions;
 
 export const selectRoute = (state: RootState) => state.route.route;

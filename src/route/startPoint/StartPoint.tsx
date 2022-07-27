@@ -6,6 +6,7 @@ import { Button } from "../../leaflet/Button";
 import { messages } from "../../localization/localization";
 import EditLocationAlt from "@mui/icons-material/EditLocationAlt";
 import Divider from "@mui/material/Divider";
+import { routeIsEditable } from "../updateRouteMiddleware";
 
 export function StartPoint() {
     const startPoint = useAppSelector(selectStartPoint);
@@ -27,7 +28,7 @@ export function StartPoint() {
             <Divider />
             <Marker
                 position={startPoint}
-                draggable={true}
+                draggable={routeIsEditable}
                 eventHandlers={{ move: (e) => dispatch(moveStartPoint({ ...(e as LeafletMouseEvent).latlng })) }}
             />
             <Button label={messages.startPoint.new} onClick={() => dispatch(resetRoute(true))}>
