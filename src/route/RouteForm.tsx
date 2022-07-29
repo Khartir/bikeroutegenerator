@@ -6,6 +6,7 @@ import { StartPoint } from "./startPoint/StartPoint";
 import Divider from "@mui/material/Divider";
 import { CurrentPosition } from "./position/CurrentPosition";
 import { CenterRoute } from "./position/CenterRoute";
+import { ShowElevationMap } from "./ShowElevationMap";
 
 export function RouteForm() {
     return (
@@ -28,6 +29,8 @@ export function RouteForm() {
             <Divider />
             <CurrentPosition />
             <CenterRoute />
+            <Divider />
+            <ShowElevationMap />
         </ButtonGroup>
     );
 }

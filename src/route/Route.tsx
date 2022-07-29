@@ -2,7 +2,7 @@ import { Layer } from "leaflet";
 import { useEffect } from "react";
 import { Polyline, useMap } from "react-leaflet";
 import { useAppSelector } from "../state/hooks";
-import { selectBounds, selectRoute } from "./routeSlice";
+import { selectBounds, selectRoute, selectShowElevationMap } from "./routeSlice";
 //@ts-ignore
 import L from "leaflet-hotline";
 import { turfToLatLng } from "../leaflet/leafletHelpers";
@@ -11,9 +11,10 @@ export function Route() {
     const route = useAppSelector(selectRoute);
     const bounds = useAppSelector(selectBounds);
     const map = useMap();
+    const showHotline = useAppSelector(selectShowElevationMap);
     useEffect(() => {
         let hotline: Layer | null = null;
-        if (!route || route.length === 0) {
+        if (!showHotline || !route || route.length === 0) {
             return;
         }
         const lines = route.map((line) => line.geometry.coordinates.map(turfToLatLng)).flat();
@@ -41,9 +42,10 @@ export function Route() {
         return () => {
             hotline?.removeFrom(map);
         };
-    }, [route, map, bounds]);
-    return null;
-    // todo add type switch
+    }, [route, map, bounds, showHotline]);
+    if (showHotline) {
+        return null;
+    }
     return (
         <>
             {route.map((line, index) => (

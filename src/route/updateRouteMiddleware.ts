@@ -10,7 +10,7 @@ export const { middleware } = listenerMiddleware;
 
 type AppStartListening = TypedStartListening<RootState, AppDispatch>;
 
-export const routeIsEditable = false;
+export const routeIsEditable = true;
 
 if (routeIsEditable) {
     (listenerMiddleware.startListening as AppStartListening)({

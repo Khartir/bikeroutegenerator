@@ -46,6 +46,7 @@ interface RouteState extends GPXData {
         profile: Profile | "";
         open: boolean;
     };
+    showElevationMap: boolean;
     debugFeatures: Feature[];
 }
 
@@ -66,6 +67,7 @@ const initialState: RouteState = {
         profile: "",
         open: true,
     },
+    showElevationMap: false,
     ...noRoute,
 };
 
@@ -109,7 +111,6 @@ const routeSlice = createSlice({
                 };
             },
         },
-
         gpxParsed: (state, { payload }: PayloadAction<GPXData>) => {
             return { ...state, ...payload };
         },
@@ -163,6 +164,9 @@ const routeSlice = createSlice({
                 route: payload,
             };
         },
+        toggleShowElevationMap: (state) => {
+            state.showElevationMap = !state.showElevationMap;
+        },
     },
     extraReducers: (builder) => {
         builder.addCase(fetchWayPointsAndRoute.fulfilled, (state, { payload }) => {
@@ -185,6 +189,7 @@ export const {
     moveWayPoint,
     moveStartPoint,
     updateRoute,
+    toggleShowElevationMap,
 } = routeSlice.actions;
 
 export const selectRoute = (state: RootState) => state.route.route;
@@ -203,6 +208,7 @@ export const selectInfo = ({ route: { distance, elevation } }: RootState) => {
 export const selectDesiredLength = (state: RootState) => state.route.options.length;
 export const selectProfile = (state: RootState) => state.route.options.profile;
 export const selectOptionsState = (state: RootState) => state.route.options.open;
+export const selectShowElevationMap = (state: RootState) => state.route.showElevationMap;
 
 export const selectDebugFeatures = ({ route: { debugFeatures } }: RootState) => debugFeatures;
 

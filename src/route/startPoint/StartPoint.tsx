@@ -4,7 +4,7 @@ import { useAppDispatch, useAppSelector } from "../../state/hooks";
 import { selectStartPoint, setStartPoint, resetRoute, moveStartPoint } from "../routeSlice";
 import { Button } from "../../leaflet/Button";
 import { messages } from "../../localization/localization";
-import EditLocationAlt from "@mui/icons-material/EditLocationAlt";
+import Delete from "@mui/icons-material/Delete";
 import Divider from "@mui/material/Divider";
 import { routeIsEditable } from "../updateRouteMiddleware";
 
@@ -32,7 +32,7 @@ export function StartPoint() {
                 eventHandlers={{ move: (e) => dispatch(moveStartPoint({ ...(e as LeafletMouseEvent).latlng })) }}
             />
             <Button label={messages.startPoint.new} onClick={() => dispatch(resetRoute(true))}>
-                <EditLocationAlt />
+                <Delete />
             </Button>
         </>
     );
