@@ -14,7 +14,13 @@ export function Route() {
     const showHotline = useAppSelector(selectShowElevationMap);
     useEffect(() => {
         let hotline: Layer | null = null;
-        if (!showHotline || !route || route.length === 0) {
+        if (!showHotline) {
+            if (bounds) {
+                map.fitBounds(bounds);
+            }
+            return;
+        }
+        if (route.length === 0) {
             return;
         }
         const lines = route.map((line) => line.geometry.coordinates.map(turfToLatLng)).flat();
