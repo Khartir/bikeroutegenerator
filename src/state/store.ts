@@ -1,15 +1,32 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
-import { persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from "redux-persist";
+import {
+    persistReducer,
+    createMigrate,
+    FLUSH,
+    REHYDRATE,
+    PAUSE,
+    PERSIST,
+    PURGE,
+    REGISTER,
+    PersistedState,
+} from "redux-persist";
 import storage from "redux-persist/lib/storage";
-import routeReducer from "../route/routeSlice";
+import routeReducer, { initialState } from "../route/routeSlice";
 //@ts-ignore
 import createThrottle from "redux-throttle";
 import { middleware } from "../route/updateRouteMiddleware";
 
+const migrations = {
+    2: (state: PersistedState) => {
+        return { _persist: state!._persist, route: initialState };
+    },
+};
+
 const persistConfig = {
     key: "root",
-    version: 1,
+    version: 2,
     storage,
+    migrate: createMigrate(migrations, { debug: false }),
 };
 
 const rootReducer = combineReducers({

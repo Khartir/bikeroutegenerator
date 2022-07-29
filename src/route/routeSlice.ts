@@ -60,7 +60,7 @@ const noRoute = {
     debugFeatures: [],
 };
 
-const initialState: RouteState = {
+export const initialState: RouteState = {
     loading: "idle",
     options: {
         length: 50,
