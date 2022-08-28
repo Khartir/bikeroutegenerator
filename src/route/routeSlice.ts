@@ -111,9 +111,6 @@ const routeSlice = createSlice({
                 };
             },
         },
-        gpxParsed: (state, { payload }: PayloadAction<GPXData>) => {
-            return { ...state, ...payload };
-        },
         setDesiredLength: (state, { payload }: PayloadAction<number>) => {
             state.options.length = payload;
         },
@@ -181,7 +178,6 @@ const routeSlice = createSlice({
 export const {
     resetRoute,
     setStartPoint,
-    gpxParsed,
     setDesiredLength,
     setProfile,
     toggleOptions,
