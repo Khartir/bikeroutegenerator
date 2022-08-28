@@ -12,6 +12,7 @@ export const fetchWayPointsAndRoute = createAsyncThunk(
         const route = await makeRoute(wayPoints, args.profile, dispatch as AppDispatch);
 
         dispatch(updateRoute(route));
+        dispatch(toggleFitToBounds());
 
         return {
             wayPoints,
@@ -48,6 +49,7 @@ interface RouteState extends GPXData {
     };
     showElevationMap: boolean;
     debugFeatures: Feature[];
+    fitToBounds: boolean;
 }
 
 const noRoute = {
@@ -69,6 +71,7 @@ export const initialState: RouteState = {
     },
     showElevationMap: false,
     ...noRoute,
+    fitToBounds: false,
 };
 
 const routeSlice = createSlice({
@@ -164,6 +167,9 @@ const routeSlice = createSlice({
         toggleShowElevationMap: (state) => {
             state.showElevationMap = !state.showElevationMap;
         },
+        toggleFitToBounds: (state) => {
+            state.fitToBounds = !state.fitToBounds;
+        },
     },
     extraReducers: (builder) => {
         builder.addCase(fetchWayPointsAndRoute.fulfilled, (state, { payload }) => {
@@ -186,6 +192,7 @@ export const {
     moveStartPoint,
     updateRoute,
     toggleShowElevationMap,
+    toggleFitToBounds,
 } = routeSlice.actions;
 
 export const selectRoute = (state: RootState) => state.route.route;
@@ -205,6 +212,7 @@ export const selectDesiredLength = (state: RootState) => state.route.options.len
 export const selectProfile = (state: RootState) => state.route.options.profile;
 export const selectOptionsState = (state: RootState) => state.route.options.open;
 export const selectShowElevationMap = (state: RootState) => state.route.showElevationMap;
+export const selectFitToBounds = (state: RootState) => state.route.fitToBounds;
 
 export const selectDebugFeatures = ({ route: { debugFeatures } }: RootState) => debugFeatures;
 

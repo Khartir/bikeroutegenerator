@@ -9,15 +9,10 @@ import { turfToLatLng } from "../leaflet/leafletHelpers";
 
 export function Route() {
     const route = useAppSelector(selectRoute);
-    const bounds = useAppSelector(selectBounds);
     const map = useMap();
-    const showHotline = useAppSelector(selectShowElevationMap);
+    const showElevationMap = useAppSelector(selectShowElevationMap);
     useEffect(() => {
-        let hotline: Layer | null = null;
-        if (!showHotline) {
-            if (bounds) {
-                map.fitBounds(bounds);
-            }
+        if (!showElevationMap) {
             return;
         }
         if (route.length === 0) {
@@ -40,16 +35,14 @@ export function Route() {
                 options.max = coord.alt;
             }
         });
-        hotline = new L.hotline(lines, options) as Layer;
-        hotline.addTo(map);
-        if (bounds) {
-            map.fitBounds(bounds);
-        }
+        const elevationMap = new L.hotline(lines, options);
+        elevationMap.addTo(map);
+
         return () => {
-            hotline?.removeFrom(map);
+            elevationMap?.removeFrom(map);
         };
-    }, [route, map, bounds, showHotline]);
-    if (showHotline) {
+    }, [route, map, showElevationMap]);
+    if (showElevationMap) {
         return null;
     }
     return (
