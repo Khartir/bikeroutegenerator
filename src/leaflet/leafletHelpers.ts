@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import L, { LatLng } from "leaflet";
+import L, { LatLng, LatLngTuple } from "leaflet";
 import { Position } from "@turf/helpers";
 
 export const useRegisterWithLeaflet = () => {
@@ -12,4 +12,8 @@ export const useRegisterWithLeaflet = () => {
 
 export function turfToLatLng(point: Position) {
     return new LatLng(point[1], point[0], point[2]);
+}
+
+export function tupleFromLatLng(point: LatLng): LatLngTuple {
+    return [point.lat, point.lng];
 }

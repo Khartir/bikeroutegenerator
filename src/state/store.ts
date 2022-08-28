@@ -12,6 +12,7 @@ import {
 } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import routeReducer, { initialState } from "../route/routeSlice";
+import mapReducer from "../leaflet/mapSlice";
 //@ts-ignore
 import createThrottle from "redux-throttle";
 import { middleware } from "../route/updateRouteMiddleware";
@@ -31,6 +32,7 @@ const persistConfig = {
 
 const rootReducer = combineReducers({
     route: routeReducer,
+    map: mapReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
