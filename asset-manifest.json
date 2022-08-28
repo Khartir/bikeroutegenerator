@@ -1,10 +1,10 @@
 {
   "files": {
-    "main.js": "/bikeroutegenerator/static/js/main.b87ab45b.js",
+    "main.js": "/bikeroutegenerator/static/js/main.4057d255.js",
     "index.html": "/bikeroutegenerator/index.html",
-    "main.b87ab45b.js.map": "/bikeroutegenerator/static/js/main.b87ab45b.js.map"
+    "main.4057d255.js.map": "/bikeroutegenerator/static/js/main.4057d255.js.map"
   },
   "entrypoints": [
-    "static/js/main.b87ab45b.js"
+    "static/js/main.4057d255.js"
   ]
 }
