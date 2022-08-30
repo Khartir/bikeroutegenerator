@@ -1,14 +1,14 @@
 {
-  "short_name": "Bike route creator",
-  "name": "Bike route creator",
+  "short_name": "Bike route generator",
+  "name": "Bike route generator",
   "icons": [
     {
-        "src": "/bikeroutecreator/android-chrome-192x192.png",
+        "src": "/bikeroutegenerator/android-chrome-192x192.png",
         "sizes": "192x192",
         "type": "image/png"
     },
     {
-        "src": "/bikeroutecreator/android-chrome-512x512.png",
+        "src": "/bikeroutegenerator/android-chrome-512x512.png",
         "sizes": "512x512",
         "type": "image/png"
     }
