@@ -10,35 +10,31 @@ export const { middleware } = listenerMiddleware;
 
 type AppStartListening = TypedStartListening<RootState, AppDispatch>;
 
-export const routeIsEditable = true;
+(listenerMiddleware.startListening as AppStartListening)({
+    matcher: isAnyOf(moveStartPoint, moveWayPoint),
+    effect: async ({ payload: { index = 0 } }, { dispatch, cancelActiveListeners, getState }) => {
+        cancelActiveListeners();
+        const {
+            route: {
+                wayPoints,
+                options: { profile },
+                route,
+            },
+        } = getState();
+        const lastIndex = wayPoints.length - 1;
+        if (lastIndex > 0) {
+            const points = [
+                wayPoints[(index + lastIndex - 1) % lastIndex],
+                wayPoints[index],
+                wayPoints[(index + lastIndex + 1) % lastIndex],
+            ];
 
-if (routeIsEditable) {
-    (listenerMiddleware.startListening as AppStartListening)({
-        matcher: isAnyOf(moveStartPoint, moveWayPoint),
-        effect: async ({ payload: { index = 0 } }, { dispatch, cancelActiveListeners, getState }) => {
-            cancelActiveListeners();
-            const {
-                route: {
-                    wayPoints,
-                    options: { profile },
-                    route,
-                },
-            } = getState();
-            const lastIndex = wayPoints.length - 1;
-            if (lastIndex > 0) {
-                const points = [
-                    wayPoints[(index + lastIndex - 1) % lastIndex],
-                    wayPoints[index],
-                    wayPoints[(index + lastIndex + 1) % lastIndex],
-                ];
+            const partialRoute = await makeRoute(points, profile, getDebugSetters(dispatch));
+            const newRoute = [...route];
 
-                const partialRoute = await makeRoute(points, profile, getDebugSetters(dispatch));
-                const newRoute = [...route];
-
-                newRoute[(index + lastIndex - 1) % lastIndex] = partialRoute[0];
-                newRoute[index] = partialRoute[1];
-                dispatch(updateRoute(newRoute));
-            }
-        },
-    });
-}
+            newRoute[(index + lastIndex - 1) % lastIndex] = partialRoute[0];
+            newRoute[index] = partialRoute[1];
+            dispatch(updateRoute(newRoute));
+        }
+    },
+});

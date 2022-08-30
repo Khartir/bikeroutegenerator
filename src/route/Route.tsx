@@ -1,8 +1,7 @@
-import { Layer } from "leaflet";
 import { useEffect } from "react";
 import { Polyline, useMap } from "react-leaflet";
 import { useAppSelector } from "../state/hooks";
-import { selectBounds, selectRoute, selectShowElevationMap } from "./routeSlice";
+import { selectRoute, selectShowElevationMap } from "./routeSlice";
 //@ts-ignore
 import L from "leaflet-hotline";
 import { turfToLatLng } from "../leaflet/leafletHelpers";

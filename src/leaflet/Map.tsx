@@ -4,7 +4,6 @@ import { WayPoints } from "../route/WayPoints";
 import { RouteForm } from "../route/RouteForm";
 import { debugEnabled } from "../routing/imported/debug";
 import { Route } from "../route/Route";
-import { routeIsEditable } from "../route/updateRouteMiddleware";
 import { useAppSelector } from "../state/hooks";
 import { selectCenter, selectZoom } from "./mapSlice";
 import { PersistentCenter } from "./PersistentCenter";
@@ -20,7 +19,7 @@ export function Map() {
             />
             <PersistentCenter />
             <RouteForm />
-            {routeIsEditable && <WayPoints />}
+            <WayPoints />
             <Route />
             {debugEnabled && <Debug />}
         </MapContainer>

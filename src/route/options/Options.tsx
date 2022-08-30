@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Length } from "./length/Length";
 import { Button } from "../../leaflet/Button";
 import { messages } from "../../localization/localization";

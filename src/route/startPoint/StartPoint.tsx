@@ -6,13 +6,12 @@ import { Button } from "../../leaflet/Button";
 import { messages } from "../../localization/localization";
 import Delete from "@mui/icons-material/Delete";
 import Divider from "@mui/material/Divider";
-import { routeIsEditable } from "../updateRouteMiddleware";
 
 export function StartPoint() {
     const startPoint = useAppSelector(selectStartPoint);
     const dispatch = useAppDispatch();
     useMapEvents({
-        click(e: LeafletMouseEvent) {
+        click(e) {
             if (!startPoint) {
                 dispatch(setStartPoint({ ...e.latlng }));
             }
@@ -28,7 +27,6 @@ export function StartPoint() {
             <Divider />
             <Marker
                 position={startPoint}
-                draggable={routeIsEditable}
                 eventHandlers={{ move: (e) => dispatch(moveStartPoint({ ...(e as LeafletMouseEvent).latlng })) }}
             />
             <Button label={messages.startPoint.new} onClick={() => dispatch(resetRoute(true))}>
