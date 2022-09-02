@@ -6,11 +6,11 @@ import { CssBaseline } from "@mui/material";
 import { persistStore } from "redux-persist";
 import { PersistGate } from "redux-persist/integration/react";
 import { RouteInfo } from "./route/RouteInfo";
+import { StrictMode } from "react";
 
-const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
-let persistor = persistStore(store);
-root.render(
-    <>
+const persistor = persistStore(store);
+ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+    <StrictMode>
         <CssBaseline />
         <Provider store={store}>
             <PersistGate persistor={persistor}>
@@ -18,5 +18,5 @@ root.render(
                 <RouteInfo />
             </PersistGate>
         </Provider>
-    </>
+    </StrictMode>
 );

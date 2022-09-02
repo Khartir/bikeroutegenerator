@@ -16,21 +16,21 @@ export function Debug() {
                 }
                 if (geometry.type === "Point") {
                     return (
-                        <Marker position={turfToLatLng(geometry.coordinates as Position)}>
+                        <Marker position={turfToLatLng(geometry.coordinates as Position)} key={index}>
                             {properties?.debugLabel && <Popup>{properties.debugLabel}</Popup>}
                         </Marker>
                     );
                 }
                 if (geometry.type === "Polygon") {
                     return (
-                        <Polyline positions={(geometry.coordinates[0] as Position[]).map(turfToLatLng)}>
+                        <Polyline positions={(geometry.coordinates[0] as Position[]).map(turfToLatLng)} key={index}>
                             {properties?.debugLabel && <Popup>{properties.debugLabel}</Popup>}
                         </Polyline>
                     );
                 }
                 if (geometry.type === "LineString") {
                     return (
-                        <Polyline positions={(geometry.coordinates as Position[]).map(turfToLatLng)}>
+                        <Polyline positions={(geometry.coordinates as Position[]).map(turfToLatLng)} key={index}>
                             {properties?.debugLabel && <Popup>{properties.debugLabel}</Popup>}
                         </Polyline>
                     );
