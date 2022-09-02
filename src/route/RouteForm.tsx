@@ -1,9 +1,8 @@
-import { ButtonGroup } from "@mui/material";
+import { ButtonGroup, Divider } from "@mui/material";
 import { CalcRoute } from "./calculateRoute/CalcRoute";
 import { Download } from "./download/Download";
 import Options from "./options/Options";
 import { StartPoint } from "./startPoint/StartPoint";
-import Divider from "@mui/material/Divider";
 import { CurrentPosition } from "./position/CurrentPosition";
 import { CenterRoute } from "./position/CenterRoute";
 import { ShowElevationMap } from "./ShowElevationMap";

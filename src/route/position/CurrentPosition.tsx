@@ -1,5 +1,5 @@
 import { Button } from "../../leaflet/Button";
-import MyLocation from "@mui/icons-material/MyLocation";
+import {MyLocation} from "@mui/icons-material";
 import { useMapEvents } from "react-leaflet";
 import { messages } from "../../localization/localization";
 

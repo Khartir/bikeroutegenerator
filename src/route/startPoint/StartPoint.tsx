@@ -4,8 +4,8 @@ import { useAppDispatch, useAppSelector } from "../../state/hooks";
 import { selectStartPoint, setStartPoint, resetRoute, moveStartPoint } from "../routeSlice";
 import { Button } from "../../leaflet/Button";
 import { messages } from "../../localization/localization";
-import Delete from "@mui/icons-material/Delete";
-import Divider from "@mui/material/Divider";
+import { Delete } from "@mui/icons-material";
+import { Divider } from "@mui/material";
 
 export function StartPoint() {
     const startPoint = useAppSelector(selectStartPoint);

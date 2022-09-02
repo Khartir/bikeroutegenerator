@@ -1,5 +1,4 @@
-import styled from "@emotion/styled";
-import { Grid, Typography } from "@mui/material";
+import { Grid, Typography, styled } from "@mui/material";
 import { messages } from "../localization/localization";
 import { useAppSelector } from "../state/hooks";
 import { selectInfo } from "./routeSlice";

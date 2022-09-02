@@ -3,12 +3,8 @@ import { Button } from "../../leaflet/Button";
 import { messages } from "../../localization/localization";
 import Settings from "@mui/icons-material/Settings";
 import { Profile } from "./profile/Profile";
-import { styled } from "@mui/material/styles";
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogContent from "@mui/material/DialogContent";
-import IconButton from "@mui/material/IconButton";
-import CloseIcon from "@mui/icons-material/Close";
+import {IconButton, styled, Dialog, DialogTitle, DialogContent} from "@mui/material";
+import {Close} from "@mui/icons-material";
 import Grid from "@mui/material/Grid";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
 import { selectOptionsState, toggleOptions } from "../routeSlice";
@@ -39,7 +35,7 @@ const BootstrapDialogTitle = ({ children, onClose }: DialogTitleProps) => {
                     color: (theme) => theme.palette.grey[500],
                 }}
             >
-                <CloseIcon />
+                <Close />
             </IconButton>
         </DialogTitle>
     );

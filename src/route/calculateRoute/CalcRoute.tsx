@@ -9,8 +9,7 @@ import {
 } from "../routeSlice";
 import { Button } from "../../leaflet/Button";
 import { messages } from "../../localization/localization";
-import Route from "@mui/icons-material/Route";
-import AltRoute from "@mui/icons-material/AltRoute";
+import {Route, AltRoute} from "@mui/icons-material";
 
 export function CalcRoute() {
     const startPoint = useAppSelector(selectStartPoint);

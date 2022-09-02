@@ -1,5 +1,5 @@
 import { Button } from "../../leaflet/Button";
-import CenterFocusStrongIcon from "@mui/icons-material/CenterFocusStrong";
+import {CenterFocusStrong} from "@mui/icons-material";
 import { useMap } from "react-leaflet";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
 import { toggleFitToBounds, selectBounds, selectFitToBounds } from "../routeSlice";
@@ -27,7 +27,7 @@ export function CenterRoute() {
                     map.fitBounds(bounds);
                 }}
             >
-                <CenterFocusStrongIcon />
+                <CenterFocusStrong />
             </Button>
         )
     );
