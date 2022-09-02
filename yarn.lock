@@ -2014,9 +2014,9 @@ to-utf8@0.0.1:
   resolved "https://registry.yarnpkg.com/to-utf8/-/to-utf8-0.0.1.tgz#d17aea72ff2fba39b9e43601be7b3ff72e089852"
   integrity sha512-zks18/TWT1iHO3v0vFp5qLKOG27m67ycq/Y7a7cTiRuUNlc4gf3HGnkRgMv0NyhnfTamtkYBJl+YeD1/j07gBQ==
 
-"togpx@git+ssh://git@github.com/Khartir/togpx.git":
+"togpx@https://github.com/Khartir/togpx.git":
   version "0.5.4"
-  resolved "git+ssh://git@github.com/Khartir/togpx.git#74f2733cecd2383c6eb0fb7083f1f7b7289a1e01"
+  resolved "https://github.com/Khartir/togpx.git#74f2733cecd2383c6eb0fb7083f1f7b7289a1e01"
   dependencies:
     concat-stream "~1.0.1"
     jxon "~2.0.0-beta.5"
