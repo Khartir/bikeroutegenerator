@@ -22,7 +22,7 @@
     "react-scripts": "5.0.1",
     "redux-persist": "^6.0.0",
     "redux-throttle": "^0.1.1",
-    "togpx": "^0.5.4",
+    "togpx": "git+ssh://git@github.com/Khartir/togpx.git",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
