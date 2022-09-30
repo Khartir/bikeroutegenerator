@@ -9,15 +9,16 @@ import { useEffect } from "react";
 export function CenterRoute() {
     const map = useMap();
     const bounds = useAppSelector(selectBounds);
-    const fitToBounds = useAppSelector(selectFitToBounds);
-    const dispatch = useAppDispatch();
+
+    const onCenterRoute = useEvent(() => map.fitBounds(bounds))
+
     useEffect(() => {
-        if (!fitToBounds || !bounds) {
-            return;
-        }
-        map.fitBounds(bounds);
-        dispatch(toggleFitToBounds());
-    }, [fitToBounds, bounds, map]);
+        const unsubscribe = (listenerMiddleware.startListening as AppStartListening)({
+            action: toggleFitToBounds,
+            effect: onCenterRoute
+        });
+        return unsubscribe
+    }, []);
 
     return (
         bounds && (
