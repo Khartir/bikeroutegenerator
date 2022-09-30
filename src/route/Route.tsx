@@ -2,8 +2,8 @@ import { useEffect } from "react";
 import { Polyline, useMap } from "react-leaflet";
 import { useAppSelector } from "../state/hooks";
 import { selectRoute, selectShowElevationMap } from "./routeSlice";
-//@ts-ignore
-import L from "leaflet-hotline";
+import init from "leaflet-hotline";
+import L from "leaflet";
 import { turfToLatLng } from "../leaflet/leafletHelpers";
 
 export function Route() {
@@ -34,7 +34,8 @@ export function Route() {
                 options.max = coord.alt;
             }
         });
-        const elevationMap = new L.hotline(lines, options);
+        const extendedLeaflet = init(L);
+        const elevationMap = extendedLeaflet.hotline(lines, options);
         elevationMap.addTo(map);
 
         return () => {

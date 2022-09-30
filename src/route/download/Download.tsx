@@ -2,9 +2,8 @@ import { useAppSelector } from "../../state/hooks";
 import { selectRoute } from "../routeSlice";
 import { Button } from "../../leaflet/Button";
 import { messages } from "../../localization/localization";
-import {Download as DownloadIcon} from "@mui/icons-material";
+import { Download as DownloadIcon } from "@mui/icons-material";
 import { lineString, Position } from "@turf/helpers";
-//@ts-ignore
 import togpx from "togpx";
 
 export const Download = () => {
