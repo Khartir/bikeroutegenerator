@@ -8,14 +8,12 @@ import { AppDispatch, RootState } from "../state/store";
 export const fetchWayPointsAndRoute = createAsyncThunk(
     "route/newWayPoints",
     async (args: GetRouteArgs, { dispatch }) => {
-        const wayPoints = await getWaypoints(args, dispatch as AppDispatch);
+        const wayPoints = await dispatch(getWaypoints(args));
         const route = await makeRoute(wayPoints, args.profile, dispatch as AppDispatch);
-
-        dispatch(updateRoute(route));
-        dispatch(toggleFitToBounds());
 
         return {
             wayPoints,
+            route
         };
     }
 );
@@ -79,11 +77,10 @@ const routeSlice = createSlice({
     initialState,
     reducers: {
         resetRoute: (state, { payload }: PayloadAction<boolean>) => {
-            let { startPoint } = state;
+            Object.assign(state, noRoute)
             if (payload) {
-                startPoint = null;
+                state.startPoint = null;
             }
-            return { ...state, ...noRoute, startPoint };
         },
         setStartPoint: (state, { payload }: PayloadAction<PseudoLatLng>) => {
             state.startPoint = payload;
@@ -168,16 +165,20 @@ const routeSlice = createSlice({
             state.showElevationMap = !state.showElevationMap;
         },
         toggleFitToBounds: (state) => {
-            state.fitToBounds = !state.fitToBounds;
         },
     },
     extraReducers: (builder) => {
         builder.addCase(fetchWayPointsAndRoute.fulfilled, (state, { payload }) => {
+            routeSlice.caseReducers.udpateRoute(state, { payload: payload.route })
+            routeSlice.caseReducers.toggleFitToBounds(state)
+            // oder
+            state.fitToBounds = !state.fitToBounds;
+
             return { ...state, ...payload };
         });
         builder.addCase(fetchWayPointsAndRoute.rejected, (state, action) => {
             console.log(action.error);
-        });
+        }),
     },
 });
 
