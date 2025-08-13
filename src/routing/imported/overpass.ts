@@ -42,7 +42,7 @@ async function snapPosToRoad(pos: Position, profile: Profile): Promise<Position>
 
         const result = await overpassJson(query, {
             verbose: true,
-            endpoint: "https://overpass-api.de/api/interpreter",
+            endpoint: "https://overpass.private.coffee/api/interpreter",
         });
 
         if (!result.elements.length) {
