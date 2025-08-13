@@ -12,7 +12,7 @@ type AppStartListening = TypedStartListening<RootState, AppDispatch>;
 
 (listenerMiddleware.startListening as AppStartListening)({
     matcher: isAnyOf(moveStartPoint, moveWayPoint),
-    effect: async ({ payload: { index = 0 } }, { dispatch, cancelActiveListeners, getState }) => {
+    effect: async function dragRouteStartPoint({ payload: { index = 0 } }, { dispatch, cancelActiveListeners, getState }) {
         cancelActiveListeners();
         const {
             route: {

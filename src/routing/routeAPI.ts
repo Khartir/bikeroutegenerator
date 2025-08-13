@@ -12,7 +12,7 @@ export interface GetRouteArgs {
     profile: Profile;
 }
 
-export async function getWaypoints({ startPoint, length, profile }: GetRouteArgs, dispatch: AppDispatch) {
+export async const  getWaypoints = ({ startPoint, length, profile }: GetRouteArgs) => (dispatch: AppDispatch) => {
     const debug = getDebugSetters(dispatch);
     const startAsTurfPoint = point([startPoint.lng, startPoint.lat]);
     return makeRandomRoute({ startPoint: startAsTurfPoint, length, profile, debug });
