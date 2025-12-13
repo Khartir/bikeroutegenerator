@@ -5,6 +5,7 @@ import { snapPolygonToRoad } from "./overpass";
 import { equalPos, findMinDistancePosIndex } from "./distance";
 import { Profile } from "../routeAPI";
 import { getWaypoints } from "./brouter";
+import { GenerationStep } from "../../route/routeSlice";
 
 export async function makeRandomRoute({
     startPoint,
@@ -13,6 +14,7 @@ export async function makeRandomRoute({
     profile,
     steps = 5,
     debug = debugCollectors,
+    setStep,
 }: {
     startPoint: Feature<Point>;
     length: number;
@@ -20,14 +22,17 @@ export async function makeRandomRoute({
     profile: Profile;
     steps?: number;
     debug: DebugCollectors;
+    setStep: (step: GenerationStep) => void;
 }) {
     const radius = length / Math.PI / 2;
     log("going w/ radius", radius);
 
+    setStep("creating_polygon");
     const center = findRandomCenterPos(startPoint, radius, debug);
     const poly1 = findRandomCheckpointPolygon(center, radius, steps, startPoint, debug);
     const poly1b = shiftToStartPoint(startPoint, poly1);
 
+    setStep("snapping_to_roads");
     const poly2 = await snapPolygonToRoad(startPoint, poly1b, profile);
     debug.addDebugFeature(poly2);
 

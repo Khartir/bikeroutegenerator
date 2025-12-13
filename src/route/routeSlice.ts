@@ -2,17 +2,22 @@ import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Feature, LineString, Position } from "@turf/helpers";
 import { LatLng, LatLngBounds, FeatureGroup, Polyline } from "leaflet";
 import { turfToLatLng } from "../leaflet/leafletHelpers";
-import { getWaypoints, GetRouteArgs, Profile, makeRoute } from "../routing/routeAPI";
+import { getWaypoints, GetRouteArgs, Profile, makeRoute, getDebugSetters } from "../routing/routeAPI";
 import { AppDispatch, RootState } from "../state/store";
 
 export const fetchWayPointsAndRoute = createAsyncThunk(
     "route/newWayPoints",
-    async (args: GetRouteArgs, { dispatch }) => {
+    async (args: GetRouteArgs, { dispatch, getState }) => {
+        dispatch(clearDebugFeatures());
         const wayPoints = await getWaypoints(args, dispatch as AppDispatch);
-        const route = await makeRoute(wayPoints, args.profile, dispatch as AppDispatch);
+        const state = getState() as RootState;
+        const debug = getDebugSetters(dispatch as AppDispatch, state.route.showIntermediateSteps);
+        dispatch(setGenerationStep("calculating_route"));
+        const route = await makeRoute(wayPoints, args.profile, debug);
 
         dispatch(updateRoute(route));
         dispatch(toggleFitToBounds());
+        dispatch(setGenerationStep("done"));
 
         return {
             wayPoints,
@@ -37,6 +42,8 @@ interface GPXData {
     elevation: number;
 }
 
+export type GenerationStep = "idle" | "creating_polygon" | "snapping_to_roads" | "calculating_route" | "done";
+
 interface RouteState extends GPXData {
     route: Feature<LineString>[];
     wayPoints: Position[];
@@ -48,8 +55,10 @@ interface RouteState extends GPXData {
         open: boolean;
     };
     showElevationMap: boolean;
+    showIntermediateSteps: boolean;
     debugFeatures: Feature[];
     fitToBounds: boolean;
+    generationStep: GenerationStep;
 }
 
 const noRoute = {
@@ -70,8 +79,10 @@ export const initialState: RouteState = {
         open: true,
     },
     showElevationMap: false,
+    showIntermediateSteps: false,
     ...noRoute,
     fitToBounds: false,
+    generationStep: "idle",
 };
 
 const routeSlice = createSlice({
@@ -83,7 +94,7 @@ const routeSlice = createSlice({
             if (payload) {
                 startPoint = null;
             }
-            return { ...state, ...noRoute, startPoint };
+            return { ...state, ...noRoute, startPoint, generationStep: "idle" };
         },
         setStartPoint: (state, { payload }: PayloadAction<PseudoLatLng>) => {
             state.startPoint = payload;
@@ -125,6 +136,9 @@ const routeSlice = createSlice({
         },
         addDebugFeature: (state, { payload }: PayloadAction<Feature>) => {
             state.debugFeatures.push(payload);
+        },
+        clearDebugFeatures: (state) => {
+            state.debugFeatures = [];
         },
         moveWayPoint: {
             reducer(state, { payload: { index, position } }: PayloadAction<{ index: number; position: Position }>) {
@@ -170,6 +184,12 @@ const routeSlice = createSlice({
         toggleFitToBounds: (state) => {
             state.fitToBounds = !state.fitToBounds;
         },
+        toggleShowIntermediateSteps: (state) => {
+            state.showIntermediateSteps = !state.showIntermediateSteps;
+        },
+        setGenerationStep: (state, { payload }: PayloadAction<GenerationStep>) => {
+            state.generationStep = payload;
+        },
     },
     extraReducers: (builder) => {
         builder.addCase(fetchWayPointsAndRoute.fulfilled, (state, { payload }) => {
@@ -188,11 +208,14 @@ export const {
     setProfile,
     toggleOptions,
     addDebugFeature,
+    clearDebugFeatures,
     moveWayPoint,
     moveStartPoint,
     updateRoute,
     toggleShowElevationMap,
     toggleFitToBounds,
+    toggleShowIntermediateSteps,
+    setGenerationStep,
 } = routeSlice.actions;
 
 export const selectRoute = (state: RootState) => state.route.route;
@@ -215,6 +238,8 @@ export const selectShowElevationMap = (state: RootState) => state.route.showElev
 export const selectFitToBounds = (state: RootState) => state.route.fitToBounds;
 
 export const selectDebugFeatures = ({ route: { debugFeatures } }: RootState) => debugFeatures;
+export const selectShowIntermediateSteps = (state: RootState) => state.route.showIntermediateSteps;
+export const selectGenerationStep = (state: RootState) => state.route.generationStep;
 
 export default routeSlice.reducer;
 

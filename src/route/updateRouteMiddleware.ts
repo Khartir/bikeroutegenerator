@@ -19,6 +19,7 @@ type AppStartListening = TypedStartListening<RootState, AppDispatch>;
                 wayPoints,
                 options: { profile },
                 route,
+                showIntermediateSteps,
             },
         } = getState();
         const lastIndex = wayPoints.length - 1;
@@ -29,7 +30,7 @@ type AppStartListening = TypedStartListening<RootState, AppDispatch>;
                 wayPoints[(index + lastIndex + 1) % lastIndex],
             ];
 
-            const partialRoute = await makeRoute(points, profile, getDebugSetters(dispatch));
+            const partialRoute = await makeRoute(points, profile, getDebugSetters(dispatch, showIntermediateSteps));
             const newRoute = [...route];
 
             newRoute[(index + lastIndex - 1) % lastIndex] = partialRoute[0];

@@ -3,11 +3,11 @@ import { Button } from "../../leaflet/Button";
 import { messages } from "../../localization/localization";
 import Settings from "@mui/icons-material/Settings";
 import { Profile } from "./profile/Profile";
-import {IconButton, styled, Dialog, DialogTitle, DialogContent} from "@mui/material";
+import {IconButton, styled, Dialog, DialogTitle, DialogContent, FormControlLabel, Switch} from "@mui/material";
 import {Close} from "@mui/icons-material";
 import Grid from "@mui/material/Grid";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
-import { selectOptionsState, toggleOptions } from "../routeSlice";
+import { selectOptionsState, selectShowIntermediateSteps, toggleOptions, toggleShowIntermediateSteps } from "../routeSlice";
 
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
     "& .MuiDialogContent-root": {
@@ -43,9 +43,11 @@ const BootstrapDialogTitle = ({ children, onClose }: DialogTitleProps) => {
 
 export default function Options() {
     const open = useAppSelector(selectOptionsState);
+    const showIntermediateSteps = useAppSelector(selectShowIntermediateSteps);
     const dispatch = useAppDispatch();
     const handleOpen = () => dispatch(toggleOptions(true));
     const handleClose = () => dispatch(toggleOptions(false));
+    const handleToggleIntermediateSteps = () => dispatch(toggleShowIntermediateSteps());
 
     return (
         <div>
@@ -63,6 +65,17 @@ export default function Options() {
                         </Grid>
                         <Grid item xs={12}>
                             <Profile />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <FormControlLabel
+                                control={
+                                    <Switch
+                                        checked={showIntermediateSteps}
+                                        onChange={handleToggleIntermediateSteps}
+                                    />
+                                }
+                                label={messages.options.showIntermediateSteps}
+                            />
                         </Grid>
                     </Grid>
                 </DialogContent>

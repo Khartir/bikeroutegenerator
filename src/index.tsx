@@ -5,7 +5,7 @@ import { store } from "./state/store";
 import { CssBaseline } from "@mui/material";
 import { persistStore } from "redux-persist";
 import { PersistGate } from "redux-persist/integration/react";
-import { RouteInfo } from "./route/RouteInfo";
+import { StatusBar } from "./route/StatusBar";
 import { StrictMode } from "react";
 
 const persistor = persistStore(store);
@@ -15,7 +15,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
         <Provider store={store}>
             <PersistGate persistor={persistor}>
                 <Map />
-                <RouteInfo />
+                <StatusBar />
             </PersistGate>
         </Provider>
     </StrictMode>
