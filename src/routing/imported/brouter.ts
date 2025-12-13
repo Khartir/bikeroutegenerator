@@ -68,6 +68,11 @@ async function callRouter(
     log("calling brouter w/", url);
     const response = await fetch(url);
 
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`BRouter API error (${response.status}): ${errorText}`);
+    }
+
     const result: FeatureCollection<LineString> = (await response.json()) as any;
     result.features[0].properties!.stroke = "#f00";
     result.features[0].properties!.debugLabel = "dead end";

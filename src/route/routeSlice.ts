@@ -44,6 +44,14 @@ interface GPXData {
 
 export type GenerationStep = "idle" | "creating_polygon" | "snapping_to_roads" | "calculating_route" | "done";
 
+export type ErrorSource = "overpass" | "brouter" | "app";
+
+export interface RouteError {
+    step: GenerationStep;
+    source: ErrorSource;
+    message: string;
+}
+
 interface RouteState extends GPXData {
     route: Feature<LineString>[];
     wayPoints: Position[];
@@ -59,6 +67,7 @@ interface RouteState extends GPXData {
     debugFeatures: Feature[];
     fitToBounds: boolean;
     generationStep: GenerationStep;
+    error: RouteError | null;
 }
 
 const noRoute = {
@@ -83,6 +92,7 @@ export const initialState: RouteState = {
     ...noRoute,
     fitToBounds: false,
     generationStep: "idle",
+    error: null,
 };
 
 const routeSlice = createSlice({
@@ -190,13 +200,44 @@ const routeSlice = createSlice({
         setGenerationStep: (state, { payload }: PayloadAction<GenerationStep>) => {
             state.generationStep = payload;
         },
+        setError: (state, { payload }: PayloadAction<RouteError | null>) => {
+            state.error = payload;
+        },
+        clearError: (state) => {
+            state.error = null;
+        },
     },
     extraReducers: (builder) => {
         builder.addCase(fetchWayPointsAndRoute.fulfilled, (state, { payload }) => {
-            return { ...state, ...payload };
+            return { ...state, ...payload, error: null };
         });
         builder.addCase(fetchWayPointsAndRoute.rejected, (state, action) => {
-            console.log(action.error);
+            const currentStep = state.generationStep;
+            state.generationStep = "idle";
+
+            // Parse error source from error message if available
+            let source: ErrorSource = "app";
+            const errorMessage = action.error.message || "An error occurred while generating the route";
+            const lowerMessage = errorMessage.toLowerCase();
+
+            if (lowerMessage.includes("overpass")) {
+                source = "overpass";
+            } else if (
+                lowerMessage.includes("brouter") ||
+                lowerMessage.includes("java.lang") ||
+                currentStep === "calculating_route"
+            ) {
+                source = "brouter";
+            } else if (currentStep === "snapping_to_roads") {
+                source = "overpass";
+            }
+
+            state.error = {
+                step: currentStep,
+                source,
+                message: errorMessage,
+            };
+            console.error("Route generation failed:", action.error);
         });
     },
 });
@@ -216,6 +257,8 @@ export const {
     toggleFitToBounds,
     toggleShowIntermediateSteps,
     setGenerationStep,
+    setError,
+    clearError,
 } = routeSlice.actions;
 
 export const selectRoute = (state: RootState) => state.route.route;
@@ -240,6 +283,7 @@ export const selectFitToBounds = (state: RootState) => state.route.fitToBounds;
 export const selectDebugFeatures = ({ route: { debugFeatures } }: RootState) => debugFeatures;
 export const selectShowIntermediateSteps = (state: RootState) => state.route.showIntermediateSteps;
 export const selectGenerationStep = (state: RootState) => state.route.generationStep;
+export const selectError = (state: RootState) => state.route.error;
 
 export default routeSlice.reducer;
 

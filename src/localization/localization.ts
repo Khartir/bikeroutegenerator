@@ -9,6 +9,7 @@ import position from "../route/position/localization";
 import { localization as routeInfo } from "../route/RouteInfo";
 import { localization as showElevationMap } from "../route/ShowElevationMap";
 import { localization as statusBar } from "../route/StatusBar";
+import { localization as error } from "../route/ErrorNotification";
 
 const m = {
     en: {
@@ -25,6 +26,7 @@ const m = {
         },
         showElevationMap: showElevationMap.en,
         statusBar: statusBar.en,
+        error: error.en,
     },
     de: {
         download: download.de,
@@ -40,6 +42,7 @@ const m = {
         },
         showElevationMap: showElevationMap.de,
         statusBar: statusBar.de,
+        error: error.de,
     },
 };
 
