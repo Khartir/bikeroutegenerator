@@ -7,7 +7,7 @@ import {IconButton, styled, Dialog, DialogTitle, DialogContent, FormControlLabel
 import {Close} from "@mui/icons-material";
 import Grid from "@mui/material/Grid";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
-import { selectOptionsState, selectStepThroughMode, selectBrouterUrl, toggleOptions, toggleStepThroughMode, setBrouterUrl } from "../routeSlice";
+import { selectOptionsState, selectStepThroughMode, selectBrouterUrl, selectUseEllipse, toggleOptions, toggleStepThroughMode, setBrouterUrl, toggleUseEllipse } from "../routeSlice";
 
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
     "& .MuiDialogContent-root": {
@@ -45,10 +45,12 @@ export default function Options() {
     const open = useAppSelector(selectOptionsState);
     const stepThroughMode = useAppSelector(selectStepThroughMode);
     const brouterUrl = useAppSelector(selectBrouterUrl);
+    const useEllipse = useAppSelector(selectUseEllipse);
     const dispatch = useAppDispatch();
     const handleOpen = () => dispatch(toggleOptions(true));
     const handleClose = () => dispatch(toggleOptions(false));
     const handleToggleStepThroughMode = () => dispatch(toggleStepThroughMode());
+    const handleToggleUseEllipse = () => dispatch(toggleUseEllipse());
     const handleBrouterUrlChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         dispatch(setBrouterUrl(event.target.value));
     };
@@ -79,6 +81,17 @@ export default function Options() {
                                     />
                                 }
                                 label={messages.options.stepThroughMode}
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <FormControlLabel
+                                control={
+                                    <Switch
+                                        checked={useEllipse}
+                                        onChange={handleToggleUseEllipse}
+                                    />
+                                }
+                                label={messages.options.useEllipse}
                             />
                         </Grid>
                         <Grid item xs={12}>

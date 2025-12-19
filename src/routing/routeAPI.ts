@@ -20,11 +20,13 @@ export async function getWaypoints(
 ) {
     const debug = getDebugSetters(dispatch, stepThroughMode);
     const startAsTurfPoint = point([startPoint.lng, startPoint.lat]);
+    const useEllipse = getState().route.options.useEllipse;
     return makeRandomRoute({
         startPoint: startAsTurfPoint,
         length,
         profile,
         debug,
+        useEllipse,
         setStep: (step) => dispatch(setGenerationStep(step)),
         waitForNextStep,
         setCenterPoint: (center) => dispatch(setCenterPoint(center)),

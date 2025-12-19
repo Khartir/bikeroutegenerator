@@ -90,6 +90,7 @@ interface RouteState extends GPXData {
         profile: Profile | "";
         open: boolean;
         brouterUrl: string;
+        useEllipse: boolean;
     };
     showElevationMap: boolean;
     stepThroughMode: boolean;
@@ -120,6 +121,7 @@ export const initialState: RouteState = {
         profile: "",
         open: true,
         brouterUrl: DEFAULT_BROUTER_URL,
+        useEllipse: false,
     },
     showElevationMap: false,
     stepThroughMode: false,
@@ -178,6 +180,9 @@ const routeSlice = createSlice({
         },
         setBrouterUrl: (state, { payload }: PayloadAction<string>) => {
             state.options.brouterUrl = payload;
+        },
+        toggleUseEllipse: (state) => {
+            state.options.useEllipse = !state.options.useEllipse;
         },
         toggleOptions: (state, { payload }: PayloadAction<boolean>) => {
             state.options.open = payload;
@@ -359,6 +364,7 @@ export const {
     setDesiredLength,
     setProfile,
     setBrouterUrl,
+    toggleUseEllipse,
     toggleOptions,
     addDebugFeature,
     clearDebugFeatures,
@@ -397,6 +403,7 @@ export const selectDesiredLength = (state: RootState) => state.route.options.len
 export const selectProfile = (state: RootState) => state.route.options.profile;
 export const selectOptionsState = (state: RootState) => state.route.options.open;
 export const selectBrouterUrl = (state: RootState) => state.route.options.brouterUrl;
+export const selectUseEllipse = (state: RootState) => state.route.options.useEllipse;
 export const selectShowElevationMap = (state: RootState) => state.route.showElevationMap;
 export const selectFitToBounds = (state: RootState) => state.route.fitToBounds;
 

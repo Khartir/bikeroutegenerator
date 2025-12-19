@@ -55,11 +55,25 @@ const migrations = {
             },
         };
     },
+    6: (state: PersistedState) => {
+        // Add useEllipse to options
+        return {
+            ...state,
+            _persist: state!._persist,
+            route: {
+                ...(state as any)?.route,
+                options: {
+                    ...(state as any)?.route?.options,
+                    useEllipse: false,
+                },
+            },
+        };
+    },
 };
 
 const persistConfig = {
     key: "root",
-    version: 5,
+    version: 6,
     storage,
     migrate: createMigrate(migrations, { debug: false }),
 };

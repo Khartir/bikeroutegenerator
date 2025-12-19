@@ -1,5 +1,6 @@
 import { Feature, Point, polygon, Polygon, Position } from "@turf/helpers";
 import circle from "@turf/circle";
+import ellipse from "@turf/ellipse";
 import { debugCollectors, DebugCollectors, log } from "./debug";
 import { snapPolygonToRoad } from "./overpass";
 import { equalPos, findMinDistancePosIndex } from "./distance";
@@ -13,6 +14,7 @@ export async function makeRandomRoute({
     ccw = false,
     profile,
     steps = 5,
+    useEllipse = false,
     debug = debugCollectors,
     setStep,
     waitForNextStep = () => Promise.resolve(),
@@ -26,6 +28,7 @@ export async function makeRandomRoute({
     ccw?: boolean;
     profile: Profile;
     steps?: number;
+    useEllipse?: boolean;
     debug: DebugCollectors;
     setStep: (step: GenerationStep) => void;
     waitForNextStep?: () => Promise<void>;
@@ -57,7 +60,7 @@ export async function makeRandomRoute({
 
     // Step 2: Create polygon, snap vertices to roads, then allow user to adjust
     setStep("creating_polygon");
-    const poly1 = findRandomCheckpointPolygon(center, radius, steps, startPoint, debug);
+    const poly1 = findRandomCheckpointPolygon(center, radius, steps, startPoint, useEllipse, debug);
 
     // Auto-snap all vertices to roads before user interaction
     if (setPolygonVertices) {
@@ -105,12 +108,35 @@ function findRandomCheckpointPolygon(
     radius: number,
     steps: number,
     startPoint: Feature<Point>,
+    useEllipse: boolean,
     { addDebugFeature }: DebugCollectors
 ): Feature<Polygon> {
-    const c2Circle = circle(center, radius, { steps });
+    let c2Shape: Feature<Polygon>;
+
+    if (useEllipse) {
+        // Generate random axis ratio between 0.5 and 0.9 (how much shorter the minor axis is)
+        const axisRatio = 0.5 + Math.random() * 0.4;
+
+        // Scale axes so that the ellipse perimeter approximately equals circle perimeter (2πr)
+        // Using Ramanujan approximation: P ≈ π * (3(a+b) - sqrt((3a+b)(a+3b)))
+        // For simplicity, we use: a * b ≈ r² to preserve approximate area/perimeter
+        // With b = axisRatio * a: a² * axisRatio = r² → a = r / sqrt(axisRatio)
+        const semiMajor = radius / Math.sqrt(axisRatio);
+        const semiMinor = radius * Math.sqrt(axisRatio);
+
+        // Random rotation angle for the ellipse
+        const rotation = Math.random() * 360;
+        log(
+            `creating ellipse with axis ratio ${axisRatio.toFixed(2)}, semiMajor=${semiMajor.toFixed(1)}km, semiMinor=${semiMinor.toFixed(1)}km, rotation ${rotation.toFixed(0)}°`
+        );
+
+        c2Shape = ellipse(center, semiMajor, semiMinor, { steps, angle: rotation });
+    } else {
+        c2Shape = circle(center, radius, { steps });
+    }
 
     // Create a mutable copy of the coordinates
-    const coords = [...c2Circle.geometry.coordinates[0]];
+    const coords = [...c2Shape.geometry.coordinates[0]];
     const minDistanceIndex = findMinDistancePosIndex(startPoint, coords);
 
     // Replace closest point with start point
