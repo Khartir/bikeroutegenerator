@@ -37,7 +37,10 @@ export async function makeRandomRoute({
     getPolygonVertices?: () => Position[];
     setPolygonVertices?: (vertices: Position[]) => void;
 }) {
-    const radius = length / Math.PI / 2;
+    // Empirischer Korrekturfaktor um Routing-Overhead auszugleichen
+    // (Road-Snapping, BRouter-Umwege, Dead-End-Fixes führen zu ~25% längeren Routen)
+    const routingCorrectionFactor = 0.75;
+    const radius = (length * routingCorrectionFactor) / Math.PI / 2;
     log("going w/ radius", radius);
 
     // Step 1: Find center position
@@ -117,17 +120,22 @@ function findRandomCheckpointPolygon(
         // Generate random axis ratio between 0.5 and 0.9 (how much shorter the minor axis is)
         const axisRatio = 0.5 + Math.random() * 0.4;
 
-        // Scale axes so that the ellipse perimeter approximately equals circle perimeter (2πr)
-        // Using Ramanujan approximation: P ≈ π * (3(a+b) - sqrt((3a+b)(a+3b)))
-        // For simplicity, we use: a * b ≈ r² to preserve approximate area/perimeter
-        // With b = axisRatio * a: a² * axisRatio = r² → a = r / sqrt(axisRatio)
-        const semiMajor = radius / Math.sqrt(axisRatio);
-        const semiMinor = radius * Math.sqrt(axisRatio);
+        // Ellipsen-Umfang-Korrektur mit Ramanujan-Approximation
+        // Verhältnis Ellipse-Umfang zu Kreis-Umfang für normalisierte Achsen (a=1/sqrt(k), b=sqrt(k))
+        const normA = 1 / Math.sqrt(axisRatio);
+        const normB = Math.sqrt(axisRatio);
+        const ellipseToCircleRatio = (3 * (normA + normB) - Math.sqrt((3 * normA + normB) * (normA + 3 * normB))) / 2;
+
+        // Radius skalieren damit Ellipse gleichen Umfang wie Kreis hat
+        const scaledRadius = radius / ellipseToCircleRatio;
+
+        const semiMajor = scaledRadius / Math.sqrt(axisRatio);
+        const semiMinor = scaledRadius * Math.sqrt(axisRatio);
 
         // Random rotation angle for the ellipse
         const rotation = Math.random() * 360;
         log(
-            `creating ellipse with axis ratio ${axisRatio.toFixed(2)}, semiMajor=${semiMajor.toFixed(1)}km, semiMinor=${semiMinor.toFixed(1)}km, rotation ${rotation.toFixed(0)}°`
+            `creating ellipse with axis ratio ${axisRatio.toFixed(2)}, correction ${ellipseToCircleRatio.toFixed(3)}, semiMajor=${semiMajor.toFixed(1)}km, semiMinor=${semiMinor.toFixed(1)}km, rotation ${rotation.toFixed(0)}°`
         );
 
         c2Shape = ellipse(center, semiMajor, semiMinor, { steps, angle: rotation });
