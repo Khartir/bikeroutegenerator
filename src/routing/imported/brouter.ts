@@ -3,7 +3,11 @@ import { Profile } from "../routeAPI";
 import { debugCollectors, DebugCollectors, log } from "./debug";
 import { equalPos } from "./distance";
 
-const baseUrl = "http://localhost:17777/brouter";
+let brouterBaseUrl = "http://localhost:17777/brouter";
+
+export function setBrouterBaseUrl(url: string) {
+    brouterBaseUrl = url;
+}
 
 export async function polygonToGpxUrl(
     startPoint: Feature<Point>,
@@ -15,7 +19,7 @@ export async function polygonToGpxUrl(
     const fixedPoints: Position[] = await getWaypoints(startPoint, poly, ccw, profile, debug);
 
     const lonlats = fixedPoints.map((x) => x.join(",")).join("|");
-    const url = `${baseUrl}?lonlats=${lonlats}&profile=${profile}&alternativeidx=0&format=gpx`;
+    const url = `${brouterBaseUrl}?lonlats=${lonlats}&profile=${profile}&alternativeidx=0&format=gpx`;
     log("brouter gpx url", url);
 
     return url;
@@ -64,7 +68,7 @@ async function callRouter(
     { addDebugFeature }: DebugCollectors
 ): Promise<Feature<LineString>> {
     const lonlats = pair.map((x) => x.join(",")).join("|");
-    const url = `${baseUrl}?lonlats=${lonlats}&profile=${profile}&alternativeidx=0&format=geojson`;
+    const url = `${brouterBaseUrl}?lonlats=${lonlats}&profile=${profile}&alternativeidx=0&format=geojson`;
     log("calling brouter w/", url);
     const response = await fetch(url);
 

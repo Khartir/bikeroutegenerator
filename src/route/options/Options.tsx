@@ -3,11 +3,11 @@ import { Button } from "../../leaflet/Button";
 import { messages } from "../../localization/localization";
 import Settings from "@mui/icons-material/Settings";
 import { Profile } from "./profile/Profile";
-import {IconButton, styled, Dialog, DialogTitle, DialogContent, FormControlLabel, Switch} from "@mui/material";
+import {IconButton, styled, Dialog, DialogTitle, DialogContent, FormControlLabel, Switch, TextField} from "@mui/material";
 import {Close} from "@mui/icons-material";
 import Grid from "@mui/material/Grid";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
-import { selectOptionsState, selectStepThroughMode, toggleOptions, toggleStepThroughMode } from "../routeSlice";
+import { selectOptionsState, selectStepThroughMode, selectBrouterUrl, toggleOptions, toggleStepThroughMode, setBrouterUrl } from "../routeSlice";
 
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
     "& .MuiDialogContent-root": {
@@ -44,10 +44,14 @@ const BootstrapDialogTitle = ({ children, onClose }: DialogTitleProps) => {
 export default function Options() {
     const open = useAppSelector(selectOptionsState);
     const stepThroughMode = useAppSelector(selectStepThroughMode);
+    const brouterUrl = useAppSelector(selectBrouterUrl);
     const dispatch = useAppDispatch();
     const handleOpen = () => dispatch(toggleOptions(true));
     const handleClose = () => dispatch(toggleOptions(false));
     const handleToggleStepThroughMode = () => dispatch(toggleStepThroughMode());
+    const handleBrouterUrlChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        dispatch(setBrouterUrl(event.target.value));
+    };
 
     return (
         <div>
@@ -75,6 +79,15 @@ export default function Options() {
                                     />
                                 }
                                 label={messages.options.stepThroughMode}
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <TextField
+                                fullWidth
+                                label={messages.options.brouterUrl}
+                                value={brouterUrl}
+                                onChange={handleBrouterUrlChange}
+                                size="small"
                             />
                         </Grid>
                     </Grid>

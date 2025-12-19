@@ -11,7 +11,7 @@ import {
     PersistedState,
 } from "redux-persist";
 import storage from "redux-persist/lib/storage";
-import routeReducer, { initialState } from "../route/routeSlice";
+import routeReducer, { initialState, DEFAULT_BROUTER_URL } from "../route/routeSlice";
 import mapReducer from "../leaflet/mapSlice";
 import createThrottle from "redux-throttle";
 import { middleware } from "../route/updateRouteMiddleware";
@@ -41,11 +41,25 @@ const migrations = {
             route: routeWithoutShowIntermediateSteps,
         };
     },
+    5: (state: PersistedState) => {
+        // Add brouterUrl to options
+        return {
+            ...state,
+            _persist: state!._persist,
+            route: {
+                ...(state as any)?.route,
+                options: {
+                    ...(state as any)?.route?.options,
+                    brouterUrl: DEFAULT_BROUTER_URL,
+                },
+            },
+        };
+    },
 };
 
 const persistConfig = {
     key: "root",
-    version: 4,
+    version: 5,
     storage,
     migrate: createMigrate(migrations, { debug: false }),
 };

@@ -3,6 +3,7 @@ import { Feature, LineString, Position } from "@turf/helpers";
 import { LatLng, LatLngBounds, FeatureGroup, Polyline } from "leaflet";
 import { turfToLatLng } from "../leaflet/leafletHelpers";
 import { getWaypoints, GetRouteArgs, Profile, makeRoute, getDebugSetters } from "../routing/routeAPI";
+import { setBrouterBaseUrl } from "../routing/imported/brouter";
 import { AppDispatch, RootState } from "../state/store";
 import { configureStepController, resetStepController } from "./stepController";
 
@@ -14,6 +15,9 @@ export const fetchWayPointsAndRoute = createAsyncThunk(
             initialState.route.stepThroughMode,
             (waiting) => dispatch(setWaitingForNextStep(waiting))
         );
+
+        // Set BRouter URL from settings
+        setBrouterBaseUrl(initialState.route.options.brouterUrl);
 
         try {
             dispatch(clearDebugFeatures());
@@ -85,6 +89,7 @@ interface RouteState extends GPXData {
         length: number;
         profile: Profile | "";
         open: boolean;
+        brouterUrl: string;
     };
     showElevationMap: boolean;
     stepThroughMode: boolean;
@@ -106,12 +111,15 @@ const noRoute = {
     debugFeatures: [],
 };
 
+export const DEFAULT_BROUTER_URL = "http://localhost:17777/brouter";
+
 export const initialState: RouteState = {
     loading: "idle",
     options: {
         length: 50,
         profile: "",
         open: true,
+        brouterUrl: DEFAULT_BROUTER_URL,
     },
     showElevationMap: false,
     stepThroughMode: false,
@@ -167,6 +175,9 @@ const routeSlice = createSlice({
         },
         setProfile: (state, { payload }: PayloadAction<Profile>) => {
             state.options.profile = payload;
+        },
+        setBrouterUrl: (state, { payload }: PayloadAction<string>) => {
+            state.options.brouterUrl = payload;
         },
         toggleOptions: (state, { payload }: PayloadAction<boolean>) => {
             state.options.open = payload;
@@ -347,6 +358,7 @@ export const {
     setStartPoint,
     setDesiredLength,
     setProfile,
+    setBrouterUrl,
     toggleOptions,
     addDebugFeature,
     clearDebugFeatures,
@@ -384,6 +396,7 @@ export const selectInfo = ({ route: { distance, elevation } }: RootState) => {
 export const selectDesiredLength = (state: RootState) => state.route.options.length;
 export const selectProfile = (state: RootState) => state.route.options.profile;
 export const selectOptionsState = (state: RootState) => state.route.options.open;
+export const selectBrouterUrl = (state: RootState) => state.route.options.brouterUrl;
 export const selectShowElevationMap = (state: RootState) => state.route.showElevationMap;
 export const selectFitToBounds = (state: RootState) => state.route.fitToBounds;
 
