@@ -7,7 +7,7 @@ import {IconButton, styled, Dialog, DialogTitle, DialogContent, FormControlLabel
 import {Close} from "@mui/icons-material";
 import Grid from "@mui/material/Grid";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
-import { selectOptionsState, selectShowIntermediateSteps, toggleOptions, toggleShowIntermediateSteps } from "../routeSlice";
+import { selectOptionsState, selectStepThroughMode, toggleOptions, toggleStepThroughMode } from "../routeSlice";
 
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
     "& .MuiDialogContent-root": {
@@ -43,11 +43,11 @@ const BootstrapDialogTitle = ({ children, onClose }: DialogTitleProps) => {
 
 export default function Options() {
     const open = useAppSelector(selectOptionsState);
-    const showIntermediateSteps = useAppSelector(selectShowIntermediateSteps);
+    const stepThroughMode = useAppSelector(selectStepThroughMode);
     const dispatch = useAppDispatch();
     const handleOpen = () => dispatch(toggleOptions(true));
     const handleClose = () => dispatch(toggleOptions(false));
-    const handleToggleIntermediateSteps = () => dispatch(toggleShowIntermediateSteps());
+    const handleToggleStepThroughMode = () => dispatch(toggleStepThroughMode());
 
     return (
         <div>
@@ -70,11 +70,11 @@ export default function Options() {
                             <FormControlLabel
                                 control={
                                     <Switch
-                                        checked={showIntermediateSteps}
-                                        onChange={handleToggleIntermediateSteps}
+                                        checked={stepThroughMode}
+                                        onChange={handleToggleStepThroughMode}
                                     />
                                 }
-                                label={messages.options.showIntermediateSteps}
+                                label={messages.options.stepThroughMode}
                             />
                         </Grid>
                     </Grid>

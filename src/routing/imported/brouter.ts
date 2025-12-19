@@ -3,7 +3,7 @@ import { Profile } from "../routeAPI";
 import { debugCollectors, DebugCollectors, log } from "./debug";
 import { equalPos } from "./distance";
 
-const baseUrl = "https://brouter-api.brokenpipe.de/brouter";
+const baseUrl = "http://localhost:17777/brouter";
 
 export async function polygonToGpxUrl(
     startPoint: Feature<Point>,

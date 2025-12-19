@@ -1,21 +1,37 @@
 import { Feature, point, Position, Properties } from "@turf/helpers";
 import { LatLng } from "leaflet";
-import { addDebugFeature, setGenerationStep, GenerationStep } from "../route/routeSlice";
-import { AppDispatch } from "../state/store";
+import { addDebugFeature, setGenerationStep, setCenterPoint, selectPolygonVertices, setPolygonVertices } from "../route/routeSlice";
+import { AppDispatch, RootState } from "../state/store";
 import { makeRandomRoute } from "./imported/route";
 import { makeRoute as routerMakeRoute } from "./imported/brouter";
+import { waitForNextStep } from "../route/stepController";
 
 export interface GetRouteArgs {
     startPoint: LatLng;
     length: number;
     profile: Profile;
-    showIntermediateSteps: boolean;
+    stepThroughMode: boolean;
 }
 
-export async function getWaypoints({ startPoint, length, profile, showIntermediateSteps }: GetRouteArgs, dispatch: AppDispatch) {
-    const debug = getDebugSetters(dispatch, showIntermediateSteps);
+export async function getWaypoints(
+    { startPoint, length, profile, stepThroughMode }: GetRouteArgs,
+    dispatch: AppDispatch,
+    getState: () => RootState
+) {
+    const debug = getDebugSetters(dispatch, stepThroughMode);
     const startAsTurfPoint = point([startPoint.lng, startPoint.lat]);
-    return makeRandomRoute({ startPoint: startAsTurfPoint, length, profile, debug, setStep: (step) => dispatch(setGenerationStep(step)) });
+    return makeRandomRoute({
+        startPoint: startAsTurfPoint,
+        length,
+        profile,
+        debug,
+        setStep: (step) => dispatch(setGenerationStep(step)),
+        waitForNextStep,
+        setCenterPoint: (center) => dispatch(setCenterPoint(center)),
+        getCenterPoint: () => getState().route.centerPoint,
+        getPolygonVertices: () => selectPolygonVertices(getState()),
+        setPolygonVertices: (vertices) => dispatch(setPolygonVertices(vertices)),
+    });
 }
 
 export async function makeRoute(wayPoints: Position[], profile: Profile, debug: DebugSetters) {

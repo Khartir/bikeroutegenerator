@@ -1,7 +1,9 @@
-import { Box, LinearProgress, Typography, styled } from "@mui/material";
+import { Box, Button, LinearProgress, Typography, styled } from "@mui/material";
+import { SkipNext } from "@mui/icons-material";
 import { messages } from "../localization/localization";
-import { useAppSelector } from "../state/hooks";
-import { selectGenerationStep, selectInfo } from "./routeSlice";
+import { useAppDispatch, useAppSelector } from "../state/hooks";
+import { advanceStep, selectGenerationStep, selectInfo, selectWaitingForNextStep } from "./routeSlice";
+import { triggerNextStep } from "./stepController";
 
 const StatusBarWrapper = styled(Box)({
     position: "fixed",
@@ -49,13 +51,20 @@ const StepSection = styled(Box)(({ theme }) => ({
 export function StatusBar() {
     const { distance, elevation } = useAppSelector(selectInfo);
     const generationStep = useAppSelector(selectGenerationStep);
+    const waitingForNextStep = useAppSelector(selectWaitingForNextStep);
+    const dispatch = useAppDispatch();
 
     const isGenerating = generationStep !== "idle" && generationStep !== "done";
     const stepMessage = isGenerating ? getStepMessage(generationStep) : "";
 
+    const handleNextStep = () => {
+        dispatch(advanceStep());
+        triggerNextStep();
+    };
+
     return (
         <StatusBarWrapper>
-            {isGenerating && <LinearProgress />}
+            {isGenerating && !waitingForNextStep && <LinearProgress />}
             <ContentWrapper>
                 <InfoSection>
                     <Typography variant="body2">
@@ -70,6 +79,16 @@ export function StatusBar() {
                         <Typography variant="body2" color="primary">
                             {stepMessage}
                         </Typography>
+                        {waitingForNextStep && (
+                            <Button
+                                variant="contained"
+                                size="small"
+                                startIcon={<SkipNext />}
+                                onClick={handleNextStep}
+                            >
+                                {messages.statusBar.nextStep}
+                            </Button>
+                        )}
                     </StepSection>
                 )}
             </ContentWrapper>
@@ -79,10 +98,14 @@ export function StatusBar() {
 
 function getStepMessage(step: string): string {
     switch (step) {
+        case "finding_center":
+            return messages.statusBar.findingCenter;
         case "creating_polygon":
             return messages.statusBar.creatingPolygon;
         case "snapping_to_roads":
             return messages.statusBar.snappingToRoads;
+        case "finding_waypoints":
+            return messages.statusBar.findingWaypoints;
         case "calculating_route":
             return messages.statusBar.calculatingRoute;
         default:
@@ -92,13 +115,19 @@ function getStepMessage(step: string): string {
 
 export const localization = {
     en: {
+        findingCenter: "Finding center point (drag to adjust)...",
         creatingPolygon: "Creating route shape...",
         snappingToRoads: "Snapping to roads...",
+        findingWaypoints: "Finding waypoints (drag to adjust)...",
         calculatingRoute: "Calculating route...",
+        nextStep: "Next Step",
     },
     de: {
+        findingCenter: "Mittelpunkt finden (ziehen zum Anpassen)...",
         creatingPolygon: "Routenform wird erstellt...",
         snappingToRoads: "An Straßen anpassen...",
+        findingWaypoints: "Wegpunkte finden (ziehen zum Anpassen)...",
         calculatingRoute: "Route wird berechnet...",
+        nextStep: "Nächster Schritt",
     },
 };

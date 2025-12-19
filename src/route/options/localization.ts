@@ -1,10 +1,10 @@
 export default {
     en: {
         title: "Options",
-        showIntermediateSteps: "Show intermediate steps",
+        stepThroughMode: "Step-through mode",
     },
     de: {
         title: "Optionen",
-        showIntermediateSteps: "Zwischenschritte anzeigen",
+        stepThroughMode: "Schrittweiser Modus",
     },
 };

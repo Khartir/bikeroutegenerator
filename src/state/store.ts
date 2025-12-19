@@ -20,11 +20,32 @@ const migrations = {
     2: (state: PersistedState) => {
         return { _persist: state!._persist, route: initialState };
     },
+    3: (state: PersistedState) => {
+        // Add stepThroughMode and waitingForNextStep fields
+        return {
+            ...state,
+            _persist: state!._persist,
+            route: {
+                ...(state as any)?.route,
+                stepThroughMode: false,
+                waitingForNextStep: false,
+            },
+        };
+    },
+    4: (state: PersistedState) => {
+        // Remove showIntermediateSteps field (now tied to stepThroughMode)
+        const { showIntermediateSteps, ...routeWithoutShowIntermediateSteps } = (state as any)?.route ?? {};
+        return {
+            ...state,
+            _persist: state!._persist,
+            route: routeWithoutShowIntermediateSteps,
+        };
+    },
 };
 
 const persistConfig = {
     key: "root",
-    version: 2,
+    version: 4,
     storage,
     migrate: createMigrate(migrations, { debug: false }),
 };

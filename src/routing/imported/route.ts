@@ -15,6 +15,11 @@ export async function makeRandomRoute({
     steps = 5,
     debug = debugCollectors,
     setStep,
+    waitForNextStep = () => Promise.resolve(),
+    setCenterPoint,
+    getCenterPoint,
+    getPolygonVertices,
+    setPolygonVertices,
 }: {
     startPoint: Feature<Point>;
     length: number;
@@ -23,33 +28,76 @@ export async function makeRandomRoute({
     steps?: number;
     debug: DebugCollectors;
     setStep: (step: GenerationStep) => void;
+    waitForNextStep?: () => Promise<void>;
+    setCenterPoint?: (center: Position) => void;
+    getCenterPoint?: () => Position | null;
+    getPolygonVertices?: () => Position[];
+    setPolygonVertices?: (vertices: Position[]) => void;
 }) {
     const radius = length / Math.PI / 2;
     log("going w/ radius", radius);
 
-    setStep("creating_polygon");
-    const center = findRandomCenterPos(startPoint, radius, debug);
-    const poly1 = findRandomCheckpointPolygon(center, radius, steps, startPoint, debug);
-    const poly1b = shiftToStartPoint(startPoint, poly1);
+    // Step 1: Find center position
+    setStep("finding_center");
+    let center = findRandomCenterPos(startPoint, radius, debug);
 
-    setStep("snapping_to_roads");
-    const poly2 = await snapPolygonToRoad(startPoint, poly1b, profile);
-    debug.addDebugFeature(poly2);
+    // Allow user to move the center point
+    if (setCenterPoint) {
+        setCenterPoint(center);
+    }
+    await waitForNextStep();
 
-    return getWaypoints(startPoint, poly2, ccw, profile, debug);
-}
-
-function shiftToStartPoint(startPoint: Feature<Point>, poly1: Feature<Polygon>): Feature<Polygon> {
-    const [...points] = poly1.geometry.coordinates[0];
-
-    while (!equalPos(points[0], startPoint.geometry.coordinates)) {
-        points.pop();
-        const p = points.shift();
-        points.push(p!);
-        points.push(points[0]);
+    // Check if user moved the center point
+    if (getCenterPoint) {
+        const userCenter = getCenterPoint();
+        if (userCenter) {
+            center = userCenter;
+        }
     }
 
-    return polygon([points]);
+    // Step 2: Create polygon, snap vertices to roads, then allow user to adjust
+    setStep("creating_polygon");
+    const poly1 = findRandomCheckpointPolygon(center, radius, steps, startPoint, debug);
+
+    // Auto-snap all vertices to roads before user interaction
+    if (setPolygonVertices) {
+        const snappedPoly = await snapPolygonToRoad(startPoint, poly1, profile);
+        // Update the c2 polygon coordinates with snapped positions
+        const snappedCoords = snappedPoly.geometry.coordinates[0] as Position[];
+        setPolygonVertices(snappedCoords.slice(0, -1)); // Remove closing vertex
+    }
+
+    await waitForNextStep();
+
+    // Get the user-modified polygon vertices (already snapped to roads by UI)
+    let poly2: Feature<Polygon>;
+    if (getPolygonVertices) {
+        const vertices = getPolygonVertices();
+        if (vertices.length > 0) {
+            // Close the polygon by adding first vertex at the end
+            const closedVertices = [...vertices, vertices[0]];
+            poly2 = polygon([closedVertices], {
+                "fill-opacity": 0,
+                stroke: "#aa0",
+                "stroke-width": 4,
+                debugLabel: "snappedToRoad",
+            });
+        } else {
+            // Fallback: snap polygon to roads if no vertices from UI
+            poly2 = await snapPolygonToRoad(startPoint, poly1, profile);
+        }
+    } else {
+        // Non-interactive mode: snap polygon to roads automatically
+        poly2 = await snapPolygonToRoad(startPoint, poly1, profile);
+    }
+
+    // Step 3: Find waypoints (user can move them after this step)
+    setStep("finding_waypoints");
+    const waypoints = await getWaypoints(startPoint, poly2, ccw, profile, debug);
+    // Note: waitForNextStep will be called in routeSlice after waypoints are set
+    // This allows user to see and modify waypoints before final route calculation
+
+    return waypoints;
 }
 
 function findRandomCheckpointPolygon(
@@ -59,16 +107,28 @@ function findRandomCheckpointPolygon(
     startPoint: Feature<Point>,
     { addDebugFeature }: DebugCollectors
 ): Feature<Polygon> {
-    const c2 = circle(center, radius, { steps });
-    c2.properties || (c2.properties = {});
-    c2.properties.debugLabel = "c2";
-    const minDistanceIndex = findMinDistancePosIndex(startPoint, c2.geometry.coordinates[0]);
+    const c2Circle = circle(center, radius, { steps });
 
-    c2.geometry.coordinates[0].splice(minDistanceIndex, 1, startPoint.geometry.coordinates);
+    // Create a mutable copy of the coordinates
+    const coords = [...c2Circle.geometry.coordinates[0]];
+    const minDistanceIndex = findMinDistancePosIndex(startPoint, coords);
 
+    // Replace closest point with start point
+    coords[minDistanceIndex] = startPoint.geometry.coordinates;
     if (minDistanceIndex === 0) {
-        c2.geometry.coordinates[0].splice(-1, 1, startPoint.geometry.coordinates);
+        coords[coords.length - 1] = startPoint.geometry.coordinates;
     }
+
+    // Rotate so start point is at index 0
+    while (!equalPos(coords[0], startPoint.geometry.coordinates)) {
+        coords.pop(); // Remove closing vertex
+        const p = coords.shift()!; // Remove first and save
+        coords.push(p); // Add to end
+        coords.push(coords[0]); // Re-close polygon
+    }
+
+    // Create new polygon with mutable coordinates
+    const c2 = polygon([coords], { debugLabel: "c2" });
 
     addDebugFeature(c2);
     return c2;
@@ -77,7 +137,7 @@ function findRandomCheckpointPolygon(
 function findRandomCenterPos(
     startPoint: Feature<Point>,
     radius: number,
-    { addDebugFeature, addDebugPosition }: DebugCollectors
+    { addDebugFeature }: DebugCollectors
 ): Position {
     const c1 = circle(startPoint, radius, { steps: 180, properties: { "fill-opacity": 0.1, debugLabel: "c1" } });
     startPoint.properties || (startPoint.properties = {});
@@ -87,7 +147,6 @@ function findRandomCenterPos(
 
     const center = c1.geometry.coordinates[0][Math.floor(Math.random() * c1.geometry.coordinates[0].length)];
     log("chosen random center", center);
-    addDebugPosition(center, { "marker-color": "#0d0", debugLabel: "center" });
 
     return center;
 }

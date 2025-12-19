@@ -4,24 +4,40 @@ import { LatLng, LatLngBounds, FeatureGroup, Polyline } from "leaflet";
 import { turfToLatLng } from "../leaflet/leafletHelpers";
 import { getWaypoints, GetRouteArgs, Profile, makeRoute, getDebugSetters } from "../routing/routeAPI";
 import { AppDispatch, RootState } from "../state/store";
+import { configureStepController, resetStepController } from "./stepController";
 
 export const fetchWayPointsAndRoute = createAsyncThunk(
     "route/newWayPoints",
     async (args: GetRouteArgs, { dispatch, getState }) => {
-        dispatch(clearDebugFeatures());
-        const wayPoints = await getWaypoints(args, dispatch as AppDispatch);
-        const state = getState() as RootState;
-        const debug = getDebugSetters(dispatch as AppDispatch, state.route.showIntermediateSteps);
-        dispatch(setGenerationStep("calculating_route"));
-        const route = await makeRoute(wayPoints, args.profile, debug);
+        const initialState = getState() as RootState;
+        configureStepController(
+            initialState.route.stepThroughMode,
+            (waiting) => dispatch(setWaitingForNextStep(waiting))
+        );
 
-        dispatch(updateRoute(route));
-        dispatch(toggleFitToBounds());
-        dispatch(setGenerationStep("done"));
+        try {
+            dispatch(clearDebugFeatures());
+            const wayPoints = await getWaypoints(args, dispatch as AppDispatch, getState as () => RootState);
 
-        return {
-            wayPoints,
-        };
+            // After step 2 (creating_polygon), proceed directly to final route
+            dispatch(setWayPoints(wayPoints));
+
+            // Calculate the final route
+            const state = getState() as RootState;
+            const debug = getDebugSetters(dispatch as AppDispatch, state.route.stepThroughMode);
+            dispatch(setGenerationStep("calculating_route"));
+            const route = await makeRoute(wayPoints, args.profile, debug);
+
+            dispatch(updateRoute(route));
+            dispatch(toggleFitToBounds());
+            dispatch(setGenerationStep("done"));
+
+            return {
+                wayPoints,
+            };
+        } finally {
+            resetStepController();
+        }
     }
 );
 
@@ -42,7 +58,14 @@ interface GPXData {
     elevation: number;
 }
 
-export type GenerationStep = "idle" | "creating_polygon" | "snapping_to_roads" | "calculating_route" | "done";
+export type GenerationStep =
+    | "idle"
+    | "finding_center"
+    | "creating_polygon"
+    | "snapping_to_roads"
+    | "finding_waypoints"
+    | "calculating_route"
+    | "done";
 
 export type ErrorSource = "overpass" | "brouter" | "app";
 
@@ -57,13 +80,15 @@ interface RouteState extends GPXData {
     wayPoints: Position[];
     loading: "idle" | "pending" | "succeeded" | "failed";
     startPoint: PseudoLatLng | null;
+    centerPoint: Position | null;
     options: {
         length: number;
         profile: Profile | "";
         open: boolean;
     };
     showElevationMap: boolean;
-    showIntermediateSteps: boolean;
+    stepThroughMode: boolean;
+    waitingForNextStep: boolean;
     debugFeatures: Feature[];
     fitToBounds: boolean;
     generationStep: GenerationStep;
@@ -74,6 +99,7 @@ const noRoute = {
     route: [],
     wayPoints: [],
     startPoint: null,
+    centerPoint: null,
     bounds: null,
     distance: 0,
     elevation: 0,
@@ -88,7 +114,8 @@ export const initialState: RouteState = {
         open: true,
     },
     showElevationMap: false,
-    showIntermediateSteps: false,
+    stepThroughMode: false,
+    waitingForNextStep: false,
     ...noRoute,
     fitToBounds: false,
     generationStep: "idle",
@@ -150,6 +177,27 @@ const routeSlice = createSlice({
         clearDebugFeatures: (state) => {
             state.debugFeatures = [];
         },
+        setCenterPoint: (state, { payload }: PayloadAction<Position>) => {
+            state.centerPoint = payload;
+        },
+        moveCenterPoint: {
+            reducer(state, { payload }: PayloadAction<Position>) {
+                state.centerPoint = payload;
+            },
+            prepare(payload) {
+                return {
+                    payload,
+                    meta: {
+                        throttle: {
+                            time: 300,
+                        },
+                    },
+                };
+            },
+        },
+        setWayPoints: (state, { payload }: PayloadAction<Position[]>) => {
+            state.wayPoints = payload;
+        },
         moveWayPoint: {
             reducer(state, { payload: { index, position } }: PayloadAction<{ index: number; position: Position }>) {
                 state.wayPoints[index] = position;
@@ -164,6 +212,49 @@ const routeSlice = createSlice({
                     },
                 };
             },
+        },
+        movePolygonVertex: {
+            reducer(state, { payload: { index, position } }: PayloadAction<{ index: number; position: Position }>) {
+                // Find the c2 polygon in debug features
+                const polygonIndex = state.debugFeatures.findIndex(
+                    (f) => f.geometry.type === "Polygon" && f.properties?.debugLabel === "c2"
+                );
+                if (polygonIndex !== -1) {
+                    const polygon = state.debugFeatures[polygonIndex];
+                    if (polygon.geometry.type === "Polygon") {
+                        const coords = polygon.geometry.coordinates[0] as Position[];
+                        coords[index] = position;
+                        // If moving the first vertex, also update the last (they should be the same in a closed polygon)
+                        if (index === 0) {
+                            coords[coords.length - 1] = position;
+                        }
+                    }
+                }
+            },
+            prepare(payload) {
+                return {
+                    payload,
+                    meta: {
+                        throttle: {
+                            time: 300,
+                        },
+                    },
+                };
+            },
+        },
+        setPolygonVertices: (state, { payload }: PayloadAction<Position[]>) => {
+            // Find the c2 polygon in debug features and update all its vertices
+            const polygonIndex = state.debugFeatures.findIndex(
+                (f) => f.geometry.type === "Polygon" && f.properties?.debugLabel === "c2"
+            );
+            if (polygonIndex !== -1) {
+                const polygon = state.debugFeatures[polygonIndex];
+                if (polygon.geometry.type === "Polygon") {
+                    // Close the polygon by adding first vertex at the end
+                    const closedVertices = [...payload, payload[0]];
+                    polygon.geometry.coordinates[0] = closedVertices;
+                }
+            }
         },
         updateRoute: (state, { payload }: PayloadAction<Feature<LineString>[]>) => {
             let elevation = 0;
@@ -194,8 +285,17 @@ const routeSlice = createSlice({
         toggleFitToBounds: (state) => {
             state.fitToBounds = !state.fitToBounds;
         },
-        toggleShowIntermediateSteps: (state) => {
-            state.showIntermediateSteps = !state.showIntermediateSteps;
+        toggleStepThroughMode: (state) => {
+            state.stepThroughMode = !state.stepThroughMode;
+            if (!state.stepThroughMode) {
+                state.waitingForNextStep = false;
+            }
+        },
+        setWaitingForNextStep: (state, { payload }: PayloadAction<boolean>) => {
+            state.waitingForNextStep = payload;
+        },
+        advanceStep: (state) => {
+            state.waitingForNextStep = false;
         },
         setGenerationStep: (state, { payload }: PayloadAction<GenerationStep>) => {
             state.generationStep = payload;
@@ -250,12 +350,19 @@ export const {
     toggleOptions,
     addDebugFeature,
     clearDebugFeatures,
+    setCenterPoint,
+    moveCenterPoint,
+    setWayPoints,
     moveWayPoint,
+    movePolygonVertex,
+    setPolygonVertices,
     moveStartPoint,
     updateRoute,
     toggleShowElevationMap,
     toggleFitToBounds,
-    toggleShowIntermediateSteps,
+    toggleStepThroughMode,
+    setWaitingForNextStep,
+    advanceStep,
     setGenerationStep,
     setError,
     clearError,
@@ -281,7 +388,18 @@ export const selectShowElevationMap = (state: RootState) => state.route.showElev
 export const selectFitToBounds = (state: RootState) => state.route.fitToBounds;
 
 export const selectDebugFeatures = ({ route: { debugFeatures } }: RootState) => debugFeatures;
-export const selectShowIntermediateSteps = (state: RootState) => state.route.showIntermediateSteps;
+export const selectCenterPoint = (state: RootState) => state.route.centerPoint;
+export const selectPolygonVertices = ({ route: { debugFeatures } }: RootState): Position[] => {
+    const polygon = debugFeatures.find((f) => f.geometry.type === "Polygon" && f.properties?.debugLabel === "c2");
+    if (polygon && polygon.geometry.type === "Polygon") {
+        // Return all vertices except the last one (which is a duplicate of the first to close the polygon)
+        const coords = polygon.geometry.coordinates[0] as Position[];
+        return coords.slice(0, -1);
+    }
+    return [];
+};
+export const selectStepThroughMode = (state: RootState) => state.route.stepThroughMode;
+export const selectWaitingForNextStep = (state: RootState) => state.route.waitingForNextStep;
 export const selectGenerationStep = (state: RootState) => state.route.generationStep;
 export const selectError = (state: RootState) => state.route.error;
 

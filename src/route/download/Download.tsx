@@ -12,7 +12,7 @@ export const Download = () => {
         return null;
     }
     const points: Position[] = route.reduce(
-        (points, line) => points.concat(line.geometry.coordinates),
+        (points, line) => line?.geometry ? points.concat(line.geometry.coordinates) : points,
         [] as Position[]
     );
     const gpx = togpx(lineString(points));

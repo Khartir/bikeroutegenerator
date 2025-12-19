@@ -6,7 +6,7 @@ import {
     selectRoute,
     selectStartPoint,
     selectProfile,
-    selectShowIntermediateSteps,
+    selectStepThroughMode,
 } from "../routeSlice";
 import { Button } from "../../leaflet/Button";
 import { messages } from "../../localization/localization";
@@ -17,7 +17,7 @@ export function CalcRoute() {
     const route = useAppSelector(selectRoute);
     const length = useAppSelector(selectDesiredLength);
     const profile = useAppSelector(selectProfile);
-    const showIntermediateSteps = useAppSelector(selectShowIntermediateSteps);
+    const stepThroughMode = useAppSelector(selectStepThroughMode);
     const dispatch = useAppDispatch();
     if (!startPoint || !profile) {
         return null;
@@ -34,7 +34,7 @@ export function CalcRoute() {
             label={label}
             onClick={() => {
                 dispatch(resetRoute(false));
-                dispatch(fetchWayPointsAndRoute({ startPoint, length, profile, showIntermediateSteps }));
+                dispatch(fetchWayPointsAndRoute({ startPoint, length, profile, stepThroughMode }));
             }}
         >
             <Icon />

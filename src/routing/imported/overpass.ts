@@ -28,7 +28,7 @@ export async function snapPolygonToRoad(startPoint: Feature<Point>, poly: Featur
     return newPoly;
 }
 
-async function snapPosToRoad(pos: Position, profile: Profile): Promise<Position> {
+export async function snapPosToRoad(pos: Position, profile: Profile): Promise<Position> {
     for (const searchRadius of [1000, 2000, 5000]) {
         const query = `
         [out:json];
