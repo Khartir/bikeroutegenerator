@@ -73,6 +73,12 @@ export type GenerationStep =
 
 export type ErrorSource = "overpass" | "brouter" | "app";
 
+export type RouteShape = "circle" | "ellipse" | "triangle_tip";
+
+export function selectRandomShape(shapes: RouteShape[]): RouteShape {
+    return shapes[Math.floor(Math.random() * shapes.length)];
+}
+
 export interface RouteError {
     step: GenerationStep;
     source: ErrorSource;
@@ -90,7 +96,7 @@ interface RouteState extends GPXData {
         profile: Profile | "";
         open: boolean;
         brouterUrl: string;
-        useEllipse: boolean;
+        enabledShapes: RouteShape[];
     };
     showElevationMap: boolean;
     stepThroughMode: boolean;
@@ -121,7 +127,7 @@ export const initialState: RouteState = {
         profile: "",
         open: true,
         brouterUrl: DEFAULT_BROUTER_URL,
-        useEllipse: false,
+        enabledShapes: ["circle"],
     },
     showElevationMap: false,
     stepThroughMode: false,
@@ -181,8 +187,18 @@ const routeSlice = createSlice({
         setBrouterUrl: (state, { payload }: PayloadAction<string>) => {
             state.options.brouterUrl = payload;
         },
-        toggleUseEllipse: (state) => {
-            state.options.useEllipse = !state.options.useEllipse;
+        toggleShape: (state, { payload }: PayloadAction<RouteShape>) => {
+            const shapes = state.options.enabledShapes;
+            const index = shapes.indexOf(payload);
+
+            if (index >= 0) {
+                // Only remove if more than one shape is enabled (ensure at least one)
+                if (shapes.length > 1) {
+                    shapes.splice(index, 1);
+                }
+            } else {
+                shapes.push(payload);
+            }
         },
         toggleOptions: (state, { payload }: PayloadAction<boolean>) => {
             state.options.open = payload;
@@ -364,7 +380,7 @@ export const {
     setDesiredLength,
     setProfile,
     setBrouterUrl,
-    toggleUseEllipse,
+    toggleShape,
     toggleOptions,
     addDebugFeature,
     clearDebugFeatures,
@@ -403,7 +419,7 @@ export const selectDesiredLength = (state: RootState) => state.route.options.len
 export const selectProfile = (state: RootState) => state.route.options.profile;
 export const selectOptionsState = (state: RootState) => state.route.options.open;
 export const selectBrouterUrl = (state: RootState) => state.route.options.brouterUrl;
-export const selectUseEllipse = (state: RootState) => state.route.options.useEllipse;
+export const selectEnabledShapes = (state: RootState) => state.route.options.enabledShapes;
 export const selectShowElevationMap = (state: RootState) => state.route.showElevationMap;
 export const selectFitToBounds = (state: RootState) => state.route.fitToBounds;
 

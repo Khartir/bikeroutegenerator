@@ -1,12 +1,13 @@
 import { Feature, Point, polygon, Polygon, Position } from "@turf/helpers";
 import circle from "@turf/circle";
 import ellipse from "@turf/ellipse";
+import destination from "@turf/destination";
 import { debugCollectors, DebugCollectors, log } from "./debug";
 import { snapPolygonToRoad } from "./overpass";
 import { equalPos, findMinDistancePosIndex } from "./distance";
 import { Profile } from "../routeAPI";
 import { getWaypoints } from "./brouter";
-import { GenerationStep } from "../../route/routeSlice";
+import { GenerationStep, RouteShape } from "../../route/routeSlice";
 
 export async function makeRandomRoute({
     startPoint,
@@ -14,7 +15,7 @@ export async function makeRandomRoute({
     ccw = false,
     profile,
     steps = 5,
-    useEllipse = false,
+    shape = "circle",
     debug = debugCollectors,
     setStep,
     waitForNextStep = () => Promise.resolve(),
@@ -28,7 +29,7 @@ export async function makeRandomRoute({
     ccw?: boolean;
     profile: Profile;
     steps?: number;
-    useEllipse?: boolean;
+    shape?: RouteShape;
     debug: DebugCollectors;
     setStep: (step: GenerationStep) => void;
     waitForNextStep?: () => Promise<void>;
@@ -63,7 +64,7 @@ export async function makeRandomRoute({
 
     // Step 2: Create polygon, snap vertices to roads, then allow user to adjust
     setStep("creating_polygon");
-    const poly1 = findRandomCheckpointPolygon(center, radius, steps, startPoint, useEllipse, debug);
+    const poly1 = findRandomCheckpointPolygon(center, radius, steps, startPoint, shape, debug);
 
     // Auto-snap all vertices to roads before user interaction
     if (setPolygonVertices) {
@@ -111,36 +112,22 @@ function findRandomCheckpointPolygon(
     radius: number,
     steps: number,
     startPoint: Feature<Point>,
-    useEllipse: boolean,
+    shape: RouteShape,
     { addDebugFeature }: DebugCollectors
 ): Feature<Polygon> {
     let c2Shape: Feature<Polygon>;
 
-    if (useEllipse) {
-        // Generate random axis ratio between 0.5 and 0.9 (how much shorter the minor axis is)
-        const axisRatio = 0.5 + Math.random() * 0.4;
-
-        // Ellipsen-Umfang-Korrektur mit Ramanujan-Approximation
-        // Verhältnis Ellipse-Umfang zu Kreis-Umfang für normalisierte Achsen (a=1/sqrt(k), b=sqrt(k))
-        const normA = 1 / Math.sqrt(axisRatio);
-        const normB = Math.sqrt(axisRatio);
-        const ellipseToCircleRatio = (3 * (normA + normB) - Math.sqrt((3 * normA + normB) * (normA + 3 * normB))) / 2;
-
-        // Radius skalieren damit Ellipse gleichen Umfang wie Kreis hat
-        const scaledRadius = radius / ellipseToCircleRatio;
-
-        const semiMajor = scaledRadius / Math.sqrt(axisRatio);
-        const semiMinor = scaledRadius * Math.sqrt(axisRatio);
-
-        // Random rotation angle for the ellipse
-        const rotation = Math.random() * 360;
-        log(
-            `creating ellipse with axis ratio ${axisRatio.toFixed(2)}, correction ${ellipseToCircleRatio.toFixed(3)}, semiMajor=${semiMajor.toFixed(1)}km, semiMinor=${semiMinor.toFixed(1)}km, rotation ${rotation.toFixed(0)}°`
-        );
-
-        c2Shape = ellipse(center, semiMajor, semiMinor, { steps, angle: rotation });
-    } else {
-        c2Shape = circle(center, radius, { steps });
+    switch (shape) {
+        case "ellipse":
+            c2Shape = createEllipse(center, radius, steps);
+            break;
+        case "triangle_tip":
+            c2Shape = createEquilateralTriangle(center, radius);
+            break;
+        case "circle":
+        default:
+            c2Shape = circle(center, radius, { steps });
+            break;
     }
 
     // Create a mutable copy of the coordinates
@@ -166,6 +153,52 @@ function findRandomCheckpointPolygon(
 
     addDebugFeature(c2);
     return c2;
+}
+
+function createEllipse(center: Position, radius: number, steps: number): Feature<Polygon> {
+    // Generate random axis ratio between 0.5 and 0.9 (how much shorter the minor axis is)
+    const axisRatio = 0.5 + Math.random() * 0.4;
+
+    // Ellipsen-Umfang-Korrektur mit Ramanujan-Approximation
+    // Verhältnis Ellipse-Umfang zu Kreis-Umfang für normalisierte Achsen (a=1/sqrt(k), b=sqrt(k))
+    const normA = 1 / Math.sqrt(axisRatio);
+    const normB = Math.sqrt(axisRatio);
+    const ellipseToCircleRatio = (3 * (normA + normB) - Math.sqrt((3 * normA + normB) * (normA + 3 * normB))) / 2;
+
+    // Radius skalieren damit Ellipse gleichen Umfang wie Kreis hat
+    const scaledRadius = radius / ellipseToCircleRatio;
+
+    const semiMajor = scaledRadius / Math.sqrt(axisRatio);
+    const semiMinor = scaledRadius * Math.sqrt(axisRatio);
+
+    // Random rotation angle for the ellipse
+    const rotation = Math.random() * 360;
+    log(
+        `creating ellipse axisRatio=${axisRatio.toFixed(2)}, semiMajor=${semiMajor.toFixed(
+            1
+        )}km, semiMinor=${semiMinor.toFixed(1)}km, rotation=${rotation.toFixed(0)}°`
+    );
+
+    return ellipse(center, semiMajor, semiMinor, { steps, angle: rotation });
+}
+
+function createEquilateralTriangle(center: Position, targetRadius: number): Feature<Polygon> {
+    // Equilateral triangle: perimeter = 3 * side = 3 * r * sqrt(3) where r is circumradius
+    // Match circle perimeter: 3 * circumradius * sqrt(3) = 2 * PI * targetRadius
+    // circumradius = (2 * PI * targetRadius) / (3 * sqrt(3))
+    const circumradius = (2 * Math.PI * targetRadius) / (3 * Math.sqrt(3));
+    const rotation = Math.random() * 360;
+
+    const vertices: Position[] = [];
+    for (let i = 0; i < 3; i++) {
+        const angle = rotation + i * 120;
+        const vertex = destination(center, circumradius, angle);
+        vertices.push(vertex.geometry.coordinates);
+    }
+    vertices.push(vertices[0]); // Close polygon
+
+    log(`creating triangle (tip start) circumradius=${circumradius.toFixed(2)}km, rotation=${rotation.toFixed(0)}°`);
+    return polygon([vertices]);
 }
 
 function findRandomCenterPos(

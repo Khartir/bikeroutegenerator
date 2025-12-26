@@ -3,11 +3,11 @@ import { Button } from "../../leaflet/Button";
 import { messages } from "../../localization/localization";
 import Settings from "@mui/icons-material/Settings";
 import { Profile } from "./profile/Profile";
-import {IconButton, styled, Dialog, DialogTitle, DialogContent, FormControlLabel, Switch, TextField} from "@mui/material";
+import {IconButton, styled, Dialog, DialogTitle, DialogContent, FormControlLabel, Switch, TextField, Checkbox, FormControl, FormLabel, FormGroup} from "@mui/material";
 import {Close} from "@mui/icons-material";
 import Grid from "@mui/material/Grid";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
-import { selectOptionsState, selectStepThroughMode, selectBrouterUrl, selectUseEllipse, toggleOptions, toggleStepThroughMode, setBrouterUrl, toggleUseEllipse } from "../routeSlice";
+import { selectOptionsState, selectStepThroughMode, selectBrouterUrl, selectEnabledShapes, toggleOptions, toggleStepThroughMode, setBrouterUrl, toggleShape, RouteShape } from "../routeSlice";
 
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
     "& .MuiDialogContent-root": {
@@ -41,19 +41,23 @@ const BootstrapDialogTitle = ({ children, onClose }: DialogTitleProps) => {
     );
 };
 
+const ALL_SHAPES: RouteShape[] = ["circle", "ellipse", "triangle_tip"];
+
 export default function Options() {
     const open = useAppSelector(selectOptionsState);
     const stepThroughMode = useAppSelector(selectStepThroughMode);
     const brouterUrl = useAppSelector(selectBrouterUrl);
-    const useEllipse = useAppSelector(selectUseEllipse);
+    const enabledShapes = useAppSelector(selectEnabledShapes);
     const dispatch = useAppDispatch();
     const handleOpen = () => dispatch(toggleOptions(true));
     const handleClose = () => dispatch(toggleOptions(false));
     const handleToggleStepThroughMode = () => dispatch(toggleStepThroughMode());
-    const handleToggleUseEllipse = () => dispatch(toggleUseEllipse());
+    const handleShapeToggle = (shape: RouteShape) => () => dispatch(toggleShape(shape));
     const handleBrouterUrlChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         dispatch(setBrouterUrl(event.target.value));
     };
+    const isShapeEnabled = (shape: RouteShape) => enabledShapes.includes(shape);
+    const isOnlyOneEnabled = enabledShapes.length === 1;
 
     return (
         <div>
@@ -84,15 +88,24 @@ export default function Options() {
                             />
                         </Grid>
                         <Grid item xs={12}>
-                            <FormControlLabel
-                                control={
-                                    <Switch
-                                        checked={useEllipse}
-                                        onChange={handleToggleUseEllipse}
-                                    />
-                                }
-                                label={messages.options.useEllipse}
-                            />
+                            <FormControl component="fieldset">
+                                <FormLabel component="legend">{messages.options.shapeSelection}</FormLabel>
+                                <FormGroup>
+                                    {ALL_SHAPES.map((shape) => (
+                                        <FormControlLabel
+                                            key={shape}
+                                            control={
+                                                <Checkbox
+                                                    checked={isShapeEnabled(shape)}
+                                                    onChange={handleShapeToggle(shape)}
+                                                    disabled={isOnlyOneEnabled && isShapeEnabled(shape)}
+                                                />
+                                            }
+                                            label={messages.options.shapes[shape]}
+                                        />
+                                    ))}
+                                </FormGroup>
+                            </FormControl>
                         </Grid>
                         <Grid item xs={12}>
                             <TextField

@@ -1,6 +1,6 @@
 import { Feature, point, Position, Properties } from "@turf/helpers";
 import { LatLng } from "leaflet";
-import { addDebugFeature, setGenerationStep, setCenterPoint, selectPolygonVertices, setPolygonVertices } from "../route/routeSlice";
+import { addDebugFeature, setGenerationStep, setCenterPoint, selectPolygonVertices, setPolygonVertices, selectRandomShape } from "../route/routeSlice";
 import { AppDispatch, RootState } from "../state/store";
 import { makeRandomRoute } from "./imported/route";
 import { makeRoute as routerMakeRoute } from "./imported/brouter";
@@ -20,13 +20,14 @@ export async function getWaypoints(
 ) {
     const debug = getDebugSetters(dispatch, stepThroughMode);
     const startAsTurfPoint = point([startPoint.lng, startPoint.lat]);
-    const useEllipse = getState().route.options.useEllipse;
+    const enabledShapes = getState().route.options.enabledShapes;
+    const shape = selectRandomShape(enabledShapes);
     return makeRandomRoute({
         startPoint: startAsTurfPoint,
         length,
         profile,
         debug,
-        useEllipse,
+        shape,
         setStep: (step) => dispatch(setGenerationStep(step)),
         waitForNextStep,
         setCenterPoint: (center) => dispatch(setCenterPoint(center)),

@@ -69,11 +69,43 @@ const migrations = {
             },
         };
     },
+    7: (state: PersistedState) => {
+        // Migrate from useEllipse boolean to enabledShapes array
+        const useEllipse = (state as any)?.route?.options?.useEllipse ?? false;
+        const { useEllipse: _, ...optionsRest } = (state as any)?.route?.options ?? {};
+        return {
+            ...state,
+            _persist: state!._persist,
+            route: {
+                ...(state as any)?.route,
+                options: {
+                    ...optionsRest,
+                    enabledShapes: useEllipse ? ["circle", "ellipse"] : ["circle"],
+                },
+            },
+        };
+    },
+    8: (state: PersistedState) => {
+        // Remove triangle_base from enabledShapes (feature removed)
+        const enabledShapes = (state as any)?.route?.options?.enabledShapes ?? ["circle"];
+        const filteredShapes = enabledShapes.filter((s: string) => s !== "triangle_base");
+        return {
+            ...state,
+            _persist: state!._persist,
+            route: {
+                ...(state as any)?.route,
+                options: {
+                    ...(state as any)?.route?.options,
+                    enabledShapes: filteredShapes.length > 0 ? filteredShapes : ["circle"],
+                },
+            },
+        };
+    },
 };
 
 const persistConfig = {
     key: "root",
-    version: 6,
+    version: 8,
     storage,
     migrate: createMigrate(migrations, { debug: false }),
 };
