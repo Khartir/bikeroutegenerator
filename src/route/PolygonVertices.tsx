@@ -4,7 +4,7 @@ import { useAppDispatch, useAppSelector } from "../state/hooks";
 import { movePolygonVertex, selectPolygonVertices, selectGenerationStep, selectStartPoint, selectProfile } from "./routeSlice";
 import { turfToLatLng } from "../leaflet/leafletHelpers";
 import { snapPosToRoad } from "../routing/imported/overpass";
-import { Profile } from "../routing/routeAPI";
+import { Profile, profiles } from "../routing/routeAPI";
 import { Position } from "@turf/helpers";
 import { useState } from "react";
 import { equalPos } from "../routing/imported/distance";
@@ -27,7 +27,7 @@ export function PolygonVertices() {
 
         setSnappingIndex(index);
         try {
-            const snappedPos = await snapPosToRoad(position, profile as Profile);
+            const snappedPos = await snapPosToRoad(position, profiles[profile as Profile]);
             dispatch(movePolygonVertex({ index, position: snappedPos }));
         } catch (error) {
             console.error("Failed to snap vertex to road:", error);

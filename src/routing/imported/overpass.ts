@@ -1,6 +1,6 @@
 import { Feature, Point, polygon, Polygon, Position } from "@turf/helpers";
 import { overpassJson } from "overpass-ts";
-import { Profile, profiles } from "../routeAPI";
+import { Profile, ProfileConfig, profiles } from "../routeAPI";
 import { addDebugPosition, log } from "./debug";
 import { findMinDistancePosIndex } from "./distance";
 
@@ -11,6 +11,7 @@ export function setOverpassBaseUrl(url: string) {
 }
 
 export async function snapPolygonToRoad(startPoint: Feature<Point>, poly: Feature<Polygon>, profile: Profile) {
+    const profileConfig = profiles[profile];
     const points = poly.geometry.coordinates[0].slice(0, -1);
 
     const snapped = await Promise.all(
@@ -19,7 +20,7 @@ export async function snapPolygonToRoad(startPoint: Feature<Point>, poly: Featur
                 return Promise.resolve(pos);
             }
 
-            return snapPosToRoad(pos, profile);
+            return snapPosToRoad(pos, profileConfig);
         })
     );
 
@@ -34,15 +35,14 @@ export async function snapPolygonToRoad(startPoint: Feature<Point>, poly: Featur
     return newPoly;
 }
 
-export async function snapPosToRoad(pos: Position, profile: Profile): Promise<Position> {
-    for (const searchRadius of [1000, 2000, 5000]) {
+export async function snapPosToRoad(pos: Position, profileOrConfig: Profile | ProfileConfig): Promise<Position> {
+    const config = typeof profileOrConfig === "string" ? profiles[profileOrConfig] : profileOrConfig;
+
+    for (const searchRadius of [2000, 5000]) {
+        const filterBody = config.overpassFilter(searchRadius, pos[1], pos[0]);
         const query = `
         [out:json];
-        (way
-            ${profiles[profile]}
-            (around:${searchRadius}.0,${pos[1]},${pos[0]});
-            >;
-        );
+        ${filterBody}
         out;
     `;
 

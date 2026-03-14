@@ -23,9 +23,9 @@ export function Profile() {
                     dispatch(setProfile(event.target.value as ProfileType));
                 }}
             >
-                {Object.keys(profiles).map((profile) => (
-                    <MenuItem value={profile} key={profile}>
-                        {messages.profile[profile as ProfileType]}
+                {Object.entries(profiles).map(([key, config]) => (
+                    <MenuItem value={key} key={key}>
+                        {config.label}
                     </MenuItem>
                 ))}
             </Select>

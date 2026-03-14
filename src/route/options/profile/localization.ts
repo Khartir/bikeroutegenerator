@@ -1,12 +1,16 @@
 export default {
     en: {
         label: "Profile",
-        "fastbike-verylowtraffic": "Roadbike",
-        trekking: "Trekking",
+        "trike-safe": "Trike Safe",
+        "trike-touring": "Trike Touring",
+        "trike-gravel": "Trike Gravel",
+        "trike-explorer": "Trike Explorer",
     },
     de: {
         label: "Profil",
-        "fastbike-verylowtraffic": "Rennrad",
-        trekking: "Trekking",
+        "trike-safe": "Trike Sicher",
+        "trike-touring": "Trike Touring",
+        "trike-gravel": "Trike Gravel",
+        "trike-explorer": "Trike Explorer",
     },
 };

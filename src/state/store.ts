@@ -115,11 +115,31 @@ const migrations = {
             },
         };
     },
+    10: (state: PersistedState) => {
+        // Migrate old profile names to new trike profiles
+        const oldProfile = (state as any)?.route?.options?.profile;
+        const profileMap: Record<string, string> = {
+            trekking: "trike-touring",
+            "fastbike-verylowtraffic": "trike-safe",
+        };
+        const newProfile = profileMap[oldProfile] ?? oldProfile ?? "";
+        return {
+            ...state,
+            _persist: state!._persist,
+            route: {
+                ...(state as any)?.route,
+                options: {
+                    ...(state as any)?.route?.options,
+                    profile: newProfile,
+                },
+            },
+        };
+    },
 };
 
 const persistConfig = {
     key: "root",
-    version: 9,
+    version: 10,
     storage,
     migrate: createMigrate(migrations, { debug: false }),
 };
