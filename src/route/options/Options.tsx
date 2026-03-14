@@ -7,7 +7,7 @@ import {IconButton, styled, Dialog, DialogTitle, DialogContent, FormControlLabel
 import {Close} from "@mui/icons-material";
 import Grid from "@mui/material/Grid";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
-import { selectOptionsState, selectStepThroughMode, selectBrouterUrl, selectEnabledShapes, toggleOptions, toggleStepThroughMode, setBrouterUrl, toggleShape, RouteShape } from "../routeSlice";
+import { selectOptionsState, selectStepThroughMode, selectBrouterUrl, selectOverpassUrl, selectEnabledShapes, toggleOptions, toggleStepThroughMode, setBrouterUrl, setOverpassUrl, toggleShape, RouteShape } from "../routeSlice";
 
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
     "& .MuiDialogContent-root": {
@@ -47,6 +47,7 @@ export default function Options() {
     const open = useAppSelector(selectOptionsState);
     const stepThroughMode = useAppSelector(selectStepThroughMode);
     const brouterUrl = useAppSelector(selectBrouterUrl);
+    const overpassUrl = useAppSelector(selectOverpassUrl);
     const enabledShapes = useAppSelector(selectEnabledShapes);
     const dispatch = useAppDispatch();
     const handleOpen = () => dispatch(toggleOptions(true));
@@ -55,6 +56,9 @@ export default function Options() {
     const handleShapeToggle = (shape: RouteShape) => () => dispatch(toggleShape(shape));
     const handleBrouterUrlChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         dispatch(setBrouterUrl(event.target.value));
+    };
+    const handleOverpassUrlChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        dispatch(setOverpassUrl(event.target.value));
     };
     const isShapeEnabled = (shape: RouteShape) => enabledShapes.includes(shape);
     const isOnlyOneEnabled = enabledShapes.length === 1;
@@ -113,6 +117,15 @@ export default function Options() {
                                 label={messages.options.brouterUrl}
                                 value={brouterUrl}
                                 onChange={handleBrouterUrlChange}
+                                size="small"
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <TextField
+                                fullWidth
+                                label={messages.options.overpassUrl}
+                                value={overpassUrl}
+                                onChange={handleOverpassUrlChange}
                                 size="small"
                             />
                         </Grid>

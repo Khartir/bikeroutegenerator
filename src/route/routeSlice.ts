@@ -4,6 +4,7 @@ import { LatLng, LatLngBounds, FeatureGroup, Polyline } from "leaflet";
 import { turfToLatLng } from "../leaflet/leafletHelpers";
 import { getWaypoints, GetRouteArgs, Profile, makeRoute, getDebugSetters } from "../routing/routeAPI";
 import { setBrouterBaseUrl } from "../routing/imported/brouter";
+import { setOverpassBaseUrl } from "../routing/imported/overpass";
 import { AppDispatch, RootState } from "../state/store";
 import { configureStepController, resetStepController } from "./stepController";
 
@@ -16,8 +17,9 @@ export const fetchWayPointsAndRoute = createAsyncThunk(
             (waiting) => dispatch(setWaitingForNextStep(waiting))
         );
 
-        // Set BRouter URL from settings
+        // Set API URLs from settings
         setBrouterBaseUrl(initialState.route.options.brouterUrl);
+        setOverpassBaseUrl(initialState.route.options.overpassUrl);
 
         try {
             dispatch(clearDebugFeatures());
@@ -96,6 +98,7 @@ interface RouteState extends GPXData {
         profile: Profile | "";
         open: boolean;
         brouterUrl: string;
+        overpassUrl: string;
         enabledShapes: RouteShape[];
     };
     showElevationMap: boolean;
@@ -119,6 +122,7 @@ const noRoute = {
 };
 
 export const DEFAULT_BROUTER_URL = "http://localhost:17777/brouter";
+export const DEFAULT_OVERPASS_URL = "https://overpass.private.coffee/api/interpreter";
 
 export const initialState: RouteState = {
     loading: "idle",
@@ -127,6 +131,7 @@ export const initialState: RouteState = {
         profile: "",
         open: true,
         brouterUrl: DEFAULT_BROUTER_URL,
+        overpassUrl: DEFAULT_OVERPASS_URL,
         enabledShapes: ["circle"],
     },
     showElevationMap: false,
@@ -186,6 +191,9 @@ const routeSlice = createSlice({
         },
         setBrouterUrl: (state, { payload }: PayloadAction<string>) => {
             state.options.brouterUrl = payload;
+        },
+        setOverpassUrl: (state, { payload }: PayloadAction<string>) => {
+            state.options.overpassUrl = payload;
         },
         toggleShape: (state, { payload }: PayloadAction<RouteShape>) => {
             const shapes = state.options.enabledShapes;
@@ -380,6 +388,7 @@ export const {
     setDesiredLength,
     setProfile,
     setBrouterUrl,
+    setOverpassUrl,
     toggleShape,
     toggleOptions,
     addDebugFeature,
@@ -419,6 +428,7 @@ export const selectDesiredLength = (state: RootState) => state.route.options.len
 export const selectProfile = (state: RootState) => state.route.options.profile;
 export const selectOptionsState = (state: RootState) => state.route.options.open;
 export const selectBrouterUrl = (state: RootState) => state.route.options.brouterUrl;
+export const selectOverpassUrl = (state: RootState) => state.route.options.overpassUrl;
 export const selectEnabledShapes = (state: RootState) => state.route.options.enabledShapes;
 export const selectShowElevationMap = (state: RootState) => state.route.showElevationMap;
 export const selectFitToBounds = (state: RootState) => state.route.fitToBounds;

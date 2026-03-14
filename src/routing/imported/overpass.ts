@@ -4,6 +4,12 @@ import { Profile, profiles } from "../routeAPI";
 import { addDebugPosition, log } from "./debug";
 import { findMinDistancePosIndex } from "./distance";
 
+let overpassBaseUrl = "https://overpass.private.coffee/api/interpreter";
+
+export function setOverpassBaseUrl(url: string) {
+    overpassBaseUrl = url;
+}
+
 export async function snapPolygonToRoad(startPoint: Feature<Point>, poly: Feature<Polygon>, profile: Profile) {
     const points = poly.geometry.coordinates[0].slice(0, -1);
 
@@ -42,7 +48,7 @@ export async function snapPosToRoad(pos: Position, profile: Profile): Promise<Po
 
         const result = await overpassJson(query, {
             verbose: true,
-            endpoint: "https://overpass.private.coffee/api/interpreter",
+            endpoint: overpassBaseUrl,
         });
 
         if (!result.elements.length) {

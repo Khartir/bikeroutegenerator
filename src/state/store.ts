@@ -11,7 +11,7 @@ import {
     PersistedState,
 } from "redux-persist";
 import storage from "redux-persist/lib/storage";
-import routeReducer, { initialState, DEFAULT_BROUTER_URL } from "../route/routeSlice";
+import routeReducer, { initialState, DEFAULT_BROUTER_URL, DEFAULT_OVERPASS_URL } from "../route/routeSlice";
 import mapReducer from "../leaflet/mapSlice";
 import createThrottle from "redux-throttle";
 import { middleware } from "../route/updateRouteMiddleware";
@@ -101,11 +101,25 @@ const migrations = {
             },
         };
     },
+    9: (state: PersistedState) => {
+        // Add overpassUrl to options
+        return {
+            ...state,
+            _persist: state!._persist,
+            route: {
+                ...(state as any)?.route,
+                options: {
+                    ...(state as any)?.route?.options,
+                    overpassUrl: DEFAULT_OVERPASS_URL,
+                },
+            },
+        };
+    },
 };
 
 const persistConfig = {
     key: "root",
-    version: 8,
+    version: 9,
     storage,
     migrate: createMigrate(migrations, { debug: false }),
 };

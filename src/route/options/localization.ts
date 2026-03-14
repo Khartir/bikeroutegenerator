@@ -5,6 +5,7 @@ export default {
         title: "Options",
         stepThroughMode: "Step-through mode",
         brouterUrl: "BRouter URL",
+        overpassUrl: "Overpass URL",
         shapeSelection: "Route shapes",
         shapes: {
             circle: "Circle",
@@ -16,6 +17,7 @@ export default {
         title: "Optionen",
         stepThroughMode: "Schrittweiser Modus",
         brouterUrl: "BRouter URL",
+        overpassUrl: "Overpass URL",
         shapeSelection: "Routenformen",
         shapes: {
             circle: "Kreis",
