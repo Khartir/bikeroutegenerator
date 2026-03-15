@@ -9,7 +9,7 @@ assign no_wrong_oneway = false # %no_wrong oneway% | keine Einbahnstrasse in fal
 
 assign dismount_cost = 1000 # %dismount_cost% | Umweg in Meter der in Kauf genommen wird bevor eine Strecke genommen wird bei der man austeigen muss, ab 1 000 000 wird keine Schiebestrecke mehr genommen | number
 assign avoid_main_roads = 8 # strong traffic avoidance
-assign avoid_small_roads = 3 # residential roads are fine
+assign avoid_small_roads = 1 # rural villages have residential roads
 assign use_proposed_cycleroutes = false  # %use_proposed_cycleroutes% | Set to true to consider proposed and regular cycleroutes as equals | boolean
 assign avoid_cycleways = 0 # prefer bike paths
 assign avoid_elevation = 5 # %avoid_elevation% | Hohenmeter vermeiden(0-10): 0 = nicht vermeiden, 1 = leicht vermeiden, 5 = Standard, 10 = stark vermeiden | number
@@ -34,10 +34,10 @@ assign avoidsr multiply 0.2 avoid_small_roads
 assign avoidbw multiply 0.125 avoid_bad_ways
 assign avoid_ele multiply avoid_elevation 0.2
 
-assign downhillcost multiply avoid_ele 80 # Kosten für die Höhenmeter bergab
-assign downhillcutoff 0.1 # Gefälle unter diesem Wert in Prozent werden nicht gewertet
-assign uphillcost multiply avoid_ele 80 # Kosten für die Höhenmeter bergauf
-assign uphillcutoff 1 # Steigungen unter diesem Wert in Prozent werden nicht gewertet
+assign downhillcost 0 # no downhill penalty - enjoy the descent
+assign downhillcutoff 1.5 # irrelevant at cost=0, kept for consistency
+assign uphillcost 30 # gentle preference for easier grades without avoiding hills
+assign uphillcutoff 2.5 # ignore mild grades, only penalize sustained climbs
 
 assign validForBikes true # bei true werden die Außnahmen bei den Abbiegebeschränkungen für Fahrräder aktiviert
 assign considerTurnRestrictions true # bei false werden die Abbiegebeschränkungen ignoriert
@@ -76,7 +76,7 @@ assign footway
 
 assign turncost
  switch junction=roundabout 0
- 150 # Kosten die für eine 90 Grad Abbiegung berechnet werden. Für kleinere Winkel werden sie mit turncost*cos(Winkel) berechnet, bei Kreisverkehr keine weitere Kosten
+ 30 # low turncost to embrace winding roads
 
 assign initialclassifier # hier wird bestimmten Wegen ein Wert zugeordnet und wenn er sich vom vorherigen unterscheidet die initalcost hinzugerechnet
  switch route=ferry 2
