@@ -66,17 +66,19 @@ export async function makeRandomRoute({
     setStep("creating_polygon");
     const poly1 = findRandomCheckpointPolygon(center, radius, steps, startPoint, shape, debug);
 
-    // Auto-snap all vertices to roads before user interaction
+    // Auto-snap all vertices to roads
+    const snappedPoly = await snapPolygonToRoad(startPoint, poly1, profile);
+
+    // Update the c2 polygon coordinates with snapped positions for step-through UI
     if (setPolygonVertices) {
-        const snappedPoly = await snapPolygonToRoad(startPoint, poly1, profile);
-        // Update the c2 polygon coordinates with snapped positions
         const snappedCoords = snappedPoly.geometry.coordinates[0] as Position[];
         setPolygonVertices(snappedCoords.slice(0, -1)); // Remove closing vertex
     }
 
     await waitForNextStep();
 
-    // Get the user-modified polygon vertices (already snapped to roads by UI)
+    // In step-through mode, the user may have modified vertices — use those
+    // Otherwise, reuse the snapped polygon directly (no second query needed)
     let poly2: Feature<Polygon>;
     if (getPolygonVertices) {
         const vertices = getPolygonVertices();
@@ -90,12 +92,11 @@ export async function makeRandomRoute({
                 debugLabel: "snappedToRoad",
             });
         } else {
-            // Fallback: snap polygon to roads if no vertices from UI
-            poly2 = await snapPolygonToRoad(startPoint, poly1, profile);
+            // No vertices from UI — reuse the already-snapped polygon
+            poly2 = snappedPoly;
         }
     } else {
-        // Non-interactive mode: snap polygon to roads automatically
-        poly2 = await snapPolygonToRoad(startPoint, poly1, profile);
+        poly2 = snappedPoly;
     }
 
     // Step 3: Find waypoints (user can move them after this step)
