@@ -2,7 +2,7 @@ import { Box, Button, LinearProgress, Typography, styled } from "@mui/material";
 import { SkipNext } from "@mui/icons-material";
 import { messages } from "../localization/localization";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
-import { advanceStep, selectGenerationStep, selectInfo, selectWaitingForNextStep } from "./routeSlice";
+import { advanceStep, selectGenerationStep, selectInfo, selectProfileProgress, selectWaitingForNextStep } from "./routeSlice";
 import { triggerNextStep } from "./stepController";
 
 const StatusBarWrapper = styled(Box)({
@@ -52,10 +52,15 @@ export function StatusBar() {
     const { distance, elevation } = useAppSelector(selectInfo);
     const generationStep = useAppSelector(selectGenerationStep);
     const waitingForNextStep = useAppSelector(selectWaitingForNextStep);
+    const profileProgress = useAppSelector(selectProfileProgress);
     const dispatch = useAppDispatch();
 
     const isGenerating = generationStep !== "idle" && generationStep !== "done";
-    const stepMessage = isGenerating ? getStepMessage(generationStep) : "";
+    const baseStepMessage = isGenerating ? getStepMessage(generationStep) : "";
+    const stepMessage =
+        baseStepMessage && profileProgress
+            ? `${baseStepMessage} (${profileProgress.current}/${profileProgress.total}: ${profileProgress.profileName})`
+            : baseStepMessage;
 
     const handleNextStep = () => {
         dispatch(advanceStep());

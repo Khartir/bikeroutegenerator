@@ -135,11 +135,29 @@ const migrations = {
             },
         };
     },
+    11: (state: PersistedState) => {
+        // Migrate single profile to profiles array, add profileRoutes
+        const oldProfile = (state as any)?.route?.options?.profile ?? "";
+        const { profile: _, ...optionsRest } = (state as any)?.route?.options ?? {};
+        return {
+            ...state,
+            _persist: state!._persist,
+            route: {
+                ...(state as any)?.route,
+                profileRoutes: {},
+                profileProgress: null,
+                options: {
+                    ...optionsRest,
+                    profiles: oldProfile ? [oldProfile] : [],
+                },
+            },
+        };
+    },
 };
 
 const persistConfig = {
     key: "root",
-    version: 10,
+    version: 11,
     storage,
     migrate: createMigrate(migrations, { debug: false }),
 };

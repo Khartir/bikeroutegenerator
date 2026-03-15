@@ -2,7 +2,16 @@ import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Feature, LineString, Position } from "@turf/helpers";
 import { LatLng, LatLngBounds, FeatureGroup, Polyline } from "leaflet";
 import { turfToLatLng } from "../leaflet/leafletHelpers";
-import { getWaypoints, GetRouteArgs, Profile, makeRoute, getDebugSetters } from "../routing/routeAPI";
+import {
+    getWaypoints,
+    getGeometry,
+    getProfileRoute,
+    GetRouteArgs,
+    Profile,
+    makeRoute,
+    getDebugSetters,
+    profiles,
+} from "../routing/routeAPI";
 import { setBrouterBaseUrl } from "../routing/imported/brouter";
 import { setOverpassBaseUrl } from "../routing/imported/overpass";
 import { AppDispatch, RootState } from "../state/store";
@@ -12,6 +21,10 @@ export const fetchWayPointsAndRoute = createAsyncThunk(
     "route/newWayPoints",
     async (args: GetRouteArgs, { dispatch, getState }) => {
         const initialState = getState() as RootState;
+        const selectedProfiles = args.profiles;
+        const useMultiProfile = !initialState.route.stepThroughMode && selectedProfiles.length > 1;
+        console.log("[multi-profile] selectedProfiles:", selectedProfiles, "stepThroughMode:", initialState.route.stepThroughMode, "useMultiProfile:", useMultiProfile);
+
         configureStepController(
             initialState.route.stepThroughMode,
             (waiting) => dispatch(setWaitingForNextStep(waiting))
@@ -23,24 +36,54 @@ export const fetchWayPointsAndRoute = createAsyncThunk(
 
         try {
             dispatch(clearDebugFeatures());
-            const wayPoints = await getWaypoints(args, dispatch as AppDispatch, getState as () => RootState);
 
-            // After step 2 (creating_polygon), proceed directly to final route
-            dispatch(setWayPoints(wayPoints));
+            if (useMultiProfile) {
+                // Multi-profile: generate geometry once, then run each profile through snapping+routing
+                const totalProfiles = selectedProfiles.length;
+                console.log("[multi-profile] generating geometry...");
+                const geometry = await getGeometry(args, dispatch as AppDispatch, getState as () => RootState);
+                console.log("[multi-profile] geometry generated, processing", totalProfiles, "profiles");
 
-            // Calculate the final route
-            const state = getState() as RootState;
-            const debug = getDebugSetters(dispatch as AppDispatch, state.route.stepThroughMode);
-            dispatch(setGenerationStep("calculating_route"));
-            const route = await makeRoute(wayPoints, args.profile, debug);
+                for (let i = 0; i < selectedProfiles.length; i++) {
+                    const profile = selectedProfiles[i];
+                    console.log("[multi-profile] starting profile", i + 1, "/", totalProfiles, ":", profile);
+                    dispatch(setProfileProgress({ current: i + 1, total: totalProfiles, profileName: profiles[profile].label }));
 
-            dispatch(updateRoute(route));
-            dispatch(toggleFitToBounds());
-            dispatch(setGenerationStep("done"));
+                    const { wayPoints, route } = await getProfileRoute(
+                        geometry,
+                        profile,
+                        args,
+                        dispatch as AppDispatch,
+                        getState as () => RootState
+                    );
 
-            return {
-                wayPoints,
-            };
+                    console.log("[multi-profile] profile", profile, "done, wayPoints:", wayPoints.length, "route segments:", route.length);
+                    dispatch(setProfileRouteResult({ profile, wayPoints, route }));
+                }
+
+                dispatch(toggleFitToBounds());
+                dispatch(setProfileProgress(null));
+                dispatch(setGenerationStep("done"));
+            } else {
+                // Single-profile: original flow with step-through support
+                const profile = selectedProfiles[0];
+                const wayPoints = await getWaypoints(
+                    { ...args, profile },
+                    dispatch as AppDispatch,
+                    getState as () => RootState
+                );
+
+                dispatch(setWayPoints(wayPoints));
+
+                const state = getState() as RootState;
+                const debug = getDebugSetters(dispatch as AppDispatch, state.route.stepThroughMode);
+                dispatch(setGenerationStep("calculating_route"));
+                const route = await makeRoute(wayPoints, profile, debug);
+
+                dispatch(setProfileRouteResult({ profile, wayPoints, route }));
+                dispatch(toggleFitToBounds());
+                dispatch(setGenerationStep("done"));
+            }
         } finally {
             resetStepController();
         }
@@ -62,6 +105,20 @@ interface GPXData {
     bounds: PseudoLatLngBounds | null;
     distance: number;
     elevation: number;
+}
+
+export interface RouteResult {
+    route: Feature<LineString>[];
+    wayPoints: Position[];
+    distance: number;
+    elevation: number;
+    bounds: PseudoLatLngBounds | null;
+}
+
+export interface ProfileProgress {
+    current: number;
+    total: number;
+    profileName: string;
 }
 
 export type GenerationStep =
@@ -90,12 +147,13 @@ export interface RouteError {
 interface RouteState extends GPXData {
     route: Feature<LineString>[];
     wayPoints: Position[];
+    profileRoutes: Record<string, RouteResult>;
     loading: "idle" | "pending" | "succeeded" | "failed";
     startPoint: PseudoLatLng | null;
     centerPoint: Position | null;
     options: {
         length: number;
-        profile: Profile | "";
+        profiles: Profile[];
         open: boolean;
         brouterUrl: string;
         overpassUrl: string;
@@ -107,12 +165,14 @@ interface RouteState extends GPXData {
     debugFeatures: Feature[];
     fitToBounds: boolean;
     generationStep: GenerationStep;
+    profileProgress: ProfileProgress | null;
     error: RouteError | null;
 }
 
 const noRoute = {
     route: [],
     wayPoints: [],
+    profileRoutes: {} as Record<string, RouteResult>,
     startPoint: null,
     centerPoint: null,
     bounds: null,
@@ -128,7 +188,7 @@ export const initialState: RouteState = {
     loading: "idle",
     options: {
         length: 50,
-        profile: "",
+        profiles: [],
         open: true,
         brouterUrl: DEFAULT_BROUTER_URL,
         overpassUrl: DEFAULT_OVERPASS_URL,
@@ -140,6 +200,7 @@ export const initialState: RouteState = {
     ...noRoute,
     fitToBounds: false,
     generationStep: "idle",
+    profileProgress: null,
     error: null,
 };
 
@@ -156,14 +217,14 @@ const routeSlice = createSlice({
         },
         setStartPoint: (state, { payload }: PayloadAction<PseudoLatLng>) => {
             state.startPoint = payload;
-            if (!state.options.length || !state.options.profile) {
+            if (!state.options.length || state.options.profiles.length === 0) {
                 state.options.open = true;
             }
         },
         moveStartPoint: {
             reducer(state, { payload }: PayloadAction<PseudoLatLng>) {
                 state.startPoint = payload;
-                if (!state.options.length || !state.options.profile) {
+                if (!state.options.length || state.options.profiles.length === 0) {
                     state.options.open = true;
                 }
                 const lastWaypoint = state.wayPoints.length - 1;
@@ -186,8 +247,16 @@ const routeSlice = createSlice({
         setDesiredLength: (state, { payload }: PayloadAction<number>) => {
             state.options.length = payload;
         },
-        setProfile: (state, { payload }: PayloadAction<Profile>) => {
-            state.options.profile = payload;
+        toggleProfile: (state, { payload }: PayloadAction<Profile>) => {
+            const profs = state.options.profiles;
+            const index = profs.indexOf(payload);
+            if (index >= 0) {
+                if (profs.length > 1) {
+                    profs.splice(index, 1);
+                }
+            } else {
+                profs.push(payload);
+            }
         },
         setBrouterUrl: (state, { payload }: PayloadAction<string>) => {
             state.options.brouterUrl = payload;
@@ -253,6 +322,40 @@ const routeSlice = createSlice({
                 };
             },
         },
+        moveProfileWayPoint: {
+            reducer(
+                state,
+                { payload: { profile, index, position } }: PayloadAction<{ profile: string; index: number; position: Position }>
+            ) {
+                const result = state.profileRoutes[profile];
+                if (result) {
+                    result.wayPoints[index] = position;
+                }
+            },
+            prepare(payload) {
+                return {
+                    payload,
+                    meta: {
+                        throttle: {
+                            time: 300,
+                        },
+                    },
+                };
+            },
+        },
+        updateProfileRoute: (
+            state,
+            { payload: { profile, route } }: PayloadAction<{ profile: string; route: Feature<LineString>[] }>
+        ) => {
+            const result = state.profileRoutes[profile];
+            if (result) {
+                const { elevation, distance, bounds } = computeRouteStats(route);
+                result.route = route;
+                result.distance = distance;
+                result.elevation = elevation;
+                result.bounds = bounds;
+            }
+        },
         movePolygonVertex: {
             reducer(state, { payload: { index, position } }: PayloadAction<{ index: number; position: Position }>) {
                 // Find the c2 polygon in debug features
@@ -297,27 +400,36 @@ const routeSlice = createSlice({
             }
         },
         updateRoute: (state, { payload }: PayloadAction<Feature<LineString>[]>) => {
-            let elevation = 0;
-            let distance = 0;
-            const featureGroup = new FeatureGroup();
-
-            payload.forEach((segment) => {
-                elevation += parseInt(segment.properties?.["filtered ascend"] ?? 0);
-                distance += parseInt(segment.properties?.["track-length"]);
-                featureGroup.addLayer(new Polyline(segment.geometry.coordinates.map(turfToLatLng)));
-            });
-
-            const bounds = featureGroup.getBounds();
+            const { elevation, distance, bounds } = computeRouteStats(payload);
             return {
                 ...state,
                 elevation,
                 distance,
-                bounds: {
-                    southWest: { ...bounds.getSouthWest() },
-                    northEast: { ...bounds.getNorthEast() },
-                },
+                bounds,
                 route: payload,
             };
+        },
+        setProfileRouteResult: (
+            state,
+            { payload }: PayloadAction<{ profile: Profile; wayPoints: Position[]; route: Feature<LineString>[] }>
+        ) => {
+            const { elevation, distance, bounds } = computeRouteStats(payload.route);
+            state.profileRoutes[payload.profile] = {
+                route: payload.route,
+                wayPoints: payload.wayPoints,
+                distance,
+                elevation,
+                bounds,
+            };
+            // Also update top-level fields for backward compat (used by middleware, etc.)
+            state.route = payload.route;
+            state.wayPoints = payload.wayPoints;
+            state.distance = distance;
+            state.elevation = elevation;
+            state.bounds = bounds;
+        },
+        setProfileProgress: (state, { payload }: PayloadAction<ProfileProgress | null>) => {
+            state.profileProgress = payload;
         },
         toggleShowElevationMap: (state) => {
             state.showElevationMap = !state.showElevationMap;
@@ -348,8 +460,8 @@ const routeSlice = createSlice({
         },
     },
     extraReducers: (builder) => {
-        builder.addCase(fetchWayPointsAndRoute.fulfilled, (state, { payload }) => {
-            return { ...state, ...payload, error: null };
+        builder.addCase(fetchWayPointsAndRoute.fulfilled, (state) => {
+            state.error = null;
         });
         builder.addCase(fetchWayPointsAndRoute.rejected, (state, action) => {
             const currentStep = state.generationStep;
@@ -386,7 +498,7 @@ export const {
     resetRoute,
     setStartPoint,
     setDesiredLength,
-    setProfile,
+    toggleProfile,
     setBrouterUrl,
     setOverpassUrl,
     toggleShape,
@@ -397,10 +509,14 @@ export const {
     moveCenterPoint,
     setWayPoints,
     moveWayPoint,
+    moveProfileWayPoint,
+    updateProfileRoute,
     movePolygonVertex,
     setPolygonVertices,
     moveStartPoint,
     updateRoute,
+    setProfileRouteResult,
+    setProfileProgress,
     toggleShowElevationMap,
     toggleFitToBounds,
     toggleStepThroughMode,
@@ -417,15 +533,30 @@ export const selectWayPoints = (state: RootState) => state.route.wayPoints;
 export const selectStartPoint = ({ route: { startPoint } }: RootState) =>
     startPoint ? denormalizeLatLng(startPoint) : null;
 
-export const selectBounds = ({ route: { bounds } }: RootState) =>
-    bounds ? new LatLngBounds(denormalizeLatLng(bounds.southWest), denormalizeLatLng(bounds.northEast)) : null;
+export const selectBounds = ({ route: { profileRoutes } }: RootState) => {
+    const allBounds = Object.values(profileRoutes)
+        .map((r) => r.bounds)
+        .filter((b): b is PseudoLatLngBounds => b !== null);
+
+    if (allBounds.length === 0) return null;
+
+    const sw = {
+        lat: Math.min(...allBounds.map((b) => b.southWest.lat)),
+        lng: Math.min(...allBounds.map((b) => b.southWest.lng)),
+    };
+    const ne = {
+        lat: Math.max(...allBounds.map((b) => b.northEast.lat)),
+        lng: Math.max(...allBounds.map((b) => b.northEast.lng)),
+    };
+    return new LatLngBounds(denormalizeLatLng(sw as PseudoLatLng), denormalizeLatLng(ne as PseudoLatLng));
+};
 
 export const selectInfo = ({ route: { distance, elevation } }: RootState) => {
     return { distance, elevation };
 };
 
 export const selectDesiredLength = (state: RootState) => state.route.options.length;
-export const selectProfile = (state: RootState) => state.route.options.profile;
+export const selectProfiles = (state: RootState) => state.route.options.profiles;
 export const selectOptionsState = (state: RootState) => state.route.options.open;
 export const selectBrouterUrl = (state: RootState) => state.route.options.brouterUrl;
 export const selectOverpassUrl = (state: RootState) => state.route.options.overpassUrl;
@@ -444,6 +575,8 @@ export const selectPolygonVertices = ({ route: { debugFeatures } }: RootState): 
     }
     return [];
 };
+export const selectProfileRoutes = (state: RootState) => state.route.profileRoutes;
+export const selectProfileProgress = (state: RootState) => state.route.profileProgress;
 export const selectStepThroughMode = (state: RootState) => state.route.stepThroughMode;
 export const selectWaitingForNextStep = (state: RootState) => state.route.waitingForNextStep;
 export const selectGenerationStep = (state: RootState) => state.route.generationStep;
@@ -453,4 +586,34 @@ export default routeSlice.reducer;
 
 function denormalizeLatLng({ lat, lng, alt }: PseudoLatLng) {
     return new LatLng(lat, lng, alt);
+}
+
+function computeRouteStats(routeSegments: Feature<LineString>[]): {
+    elevation: number;
+    distance: number;
+    bounds: PseudoLatLngBounds | null;
+} {
+    let elevation = 0;
+    let distance = 0;
+    const featureGroup = new FeatureGroup();
+
+    routeSegments.forEach((segment) => {
+        elevation += parseInt(segment.properties?.["filtered ascend"] ?? 0);
+        distance += parseInt(segment.properties?.["track-length"]);
+        featureGroup.addLayer(new Polyline(segment.geometry.coordinates.map(turfToLatLng)));
+    });
+
+    if (routeSegments.length === 0) {
+        return { elevation: 0, distance: 0, bounds: null };
+    }
+
+    const bounds = featureGroup.getBounds();
+    return {
+        elevation,
+        distance,
+        bounds: {
+            southWest: { ...bounds.getSouthWest() },
+            northEast: { ...bounds.getNorthEast() },
+        },
+    };
 }

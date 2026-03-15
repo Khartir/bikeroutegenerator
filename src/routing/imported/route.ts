@@ -9,6 +9,57 @@ import { Profile } from "../routeAPI";
 import { getWaypoints } from "./brouter";
 import { GenerationStep, RouteShape } from "../../route/routeSlice";
 
+export interface RouteGeometry {
+    startPoint: Feature<Point>;
+    center: Position;
+    polygon: Feature<Polygon>;
+    radius: number;
+}
+
+/** Generate only the geometry (steps 1-2) — profile-independent */
+export async function generateGeometry({
+    startPoint,
+    length,
+    steps = 5,
+    shape = "circle",
+    debug = debugCollectors,
+    setStep,
+}: {
+    startPoint: Feature<Point>;
+    length: number;
+    steps?: number;
+    shape?: RouteShape;
+    debug: DebugCollectors;
+    setStep: (step: GenerationStep) => void;
+}): Promise<RouteGeometry> {
+    const routingCorrectionFactor = 0.75;
+    const radius = (length * routingCorrectionFactor) / Math.PI / 2;
+    log("going w/ radius", radius);
+
+    setStep("finding_center");
+    const center = findRandomCenterPos(startPoint, radius, debug);
+
+    setStep("creating_polygon");
+    const poly = findRandomCheckpointPolygon(center, radius, steps, startPoint, shape, debug);
+
+    return { startPoint, center, polygon: poly, radius };
+}
+
+/** Run profile-dependent steps (snap + waypoints) on pre-generated geometry */
+export async function routeWithProfile(
+    geometry: RouteGeometry,
+    profile: Profile,
+    debug: DebugCollectors,
+    setStep: (step: GenerationStep) => void,
+    ccw = false,
+): Promise<Position[]> {
+    setStep("snapping_to_roads");
+    const snappedPoly = await snapPolygonToRoad(geometry.startPoint, geometry.polygon, profile);
+
+    setStep("finding_waypoints");
+    return getWaypoints(geometry.startPoint, snappedPoly, ccw, profile, debug);
+}
+
 export async function makeRandomRoute({
     startPoint,
     length,

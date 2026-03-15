@@ -1,7 +1,7 @@
 import { LeafletMouseEvent } from "leaflet";
 import { Marker } from "react-leaflet";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
-import { movePolygonVertex, selectPolygonVertices, selectGenerationStep, selectStartPoint, selectProfile } from "./routeSlice";
+import { movePolygonVertex, selectPolygonVertices, selectGenerationStep, selectStartPoint, selectProfiles } from "./routeSlice";
 import { turfToLatLng } from "../leaflet/leafletHelpers";
 import { snapPosToRoad } from "../routing/imported/overpass";
 import { Profile, profiles } from "../routing/routeAPI";
@@ -13,7 +13,8 @@ export function PolygonVertices() {
     const vertices = useAppSelector(selectPolygonVertices);
     const generationStep = useAppSelector(selectGenerationStep);
     const startPoint = useAppSelector(selectStartPoint);
-    const profile = useAppSelector(selectProfile);
+    const selectedProfiles = useAppSelector(selectProfiles);
+    const profile = selectedProfiles[0];
     const dispatch = useAppDispatch();
     const [snappingIndex, setSnappingIndex] = useState<number | null>(null);
 

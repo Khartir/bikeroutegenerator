@@ -5,21 +5,21 @@ import {
     selectDesiredLength,
     selectRoute,
     selectStartPoint,
-    selectProfile,
+    selectProfiles,
     selectStepThroughMode,
 } from "../routeSlice";
 import { Button } from "../../leaflet/Button";
 import { messages } from "../../localization/localization";
-import {Route, AltRoute} from "@mui/icons-material";
+import { Route, AltRoute } from "@mui/icons-material";
 
 export function CalcRoute() {
     const startPoint = useAppSelector(selectStartPoint);
     const route = useAppSelector(selectRoute);
     const length = useAppSelector(selectDesiredLength);
-    const profile = useAppSelector(selectProfile);
+    const profiles = useAppSelector(selectProfiles);
     const stepThroughMode = useAppSelector(selectStepThroughMode);
     const dispatch = useAppDispatch();
-    if (!startPoint || !profile) {
+    if (!startPoint || profiles.length === 0) {
         return null;
     }
     let label = messages.calculateRoute.firstRoute;
@@ -34,7 +34,7 @@ export function CalcRoute() {
             label={label}
             onClick={() => {
                 dispatch(resetRoute(false));
-                dispatch(fetchWayPointsAndRoute({ startPoint, length, profile, stepThroughMode }));
+                dispatch(fetchWayPointsAndRoute({ startPoint, length, profiles, stepThroughMode }));
             }}
         >
             <Icon />

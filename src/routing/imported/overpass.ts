@@ -73,12 +73,9 @@ export async function snapPolygonToRoad(startPoint: Feature<Point>, poly: Featur
     return newPoly;
 }
 
-async function snapAllVerticesToRoad(
-    positions: Position[],
-    config: ProfileConfig
-): Promise<Map<Position, Position>> {
+async function snapAllVerticesToRoad(positions: Position[], config: ProfileConfig): Promise<Map<Position, Position>> {
     const result = new Map<Position, Position>();
-    const initialRadius = 2000;
+    const initialRadius = 1000;
 
     const nodes = await queryNodes(positions, config, initialRadius);
 
@@ -140,7 +137,7 @@ function findNearestWithinRadius(pos: Position, nodes: Position[], radiusMeters:
 export async function snapPosToRoad(pos: Position, profileOrConfig: Profile | ProfileConfig): Promise<Position> {
     const config = typeof profileOrConfig === "string" ? profiles[profileOrConfig] : profileOrConfig;
 
-    for (const searchRadius of [2000, 5000]) {
+    for (const searchRadius of [1000, 2000, 5000]) {
         const wayClauses = config.overpassFilter(searchRadius, pos[1], pos[0]);
         const query = buildSingleQuery(wayClauses, searchRadius, pos[1], pos[0]);
 

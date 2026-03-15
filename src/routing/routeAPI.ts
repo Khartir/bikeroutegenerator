@@ -1,20 +1,28 @@
-import { Feature, point, Position, Properties } from "@turf/helpers";
+import { Feature, point, Polygon, Position, Properties } from "@turf/helpers";
 import { LatLng } from "leaflet";
-import { addDebugFeature, setGenerationStep, setCenterPoint, selectPolygonVertices, setPolygonVertices, selectRandomShape } from "../route/routeSlice";
+import {
+    addDebugFeature,
+    setGenerationStep,
+    setCenterPoint,
+    selectPolygonVertices,
+    setPolygonVertices,
+    selectRandomShape,
+} from "../route/routeSlice";
 import { AppDispatch, RootState } from "../state/store";
-import { makeRandomRoute } from "./imported/route";
+import { makeRandomRoute, generateGeometry, routeWithProfile, RouteGeometry } from "./imported/route";
 import { makeRoute as routerMakeRoute } from "./imported/brouter";
 import { waitForNextStep } from "../route/stepController";
 
 export interface GetRouteArgs {
     startPoint: LatLng;
     length: number;
-    profile: Profile;
+    profiles: Profile[];
     stepThroughMode: boolean;
 }
 
+/** Single-profile flow (used with step-through mode) */
 export async function getWaypoints(
-    { startPoint, length, profile, stepThroughMode }: GetRouteArgs,
+    { startPoint, length, profile, stepThroughMode }: { startPoint: LatLng; length: number; profile: Profile; stepThroughMode: boolean },
     dispatch: AppDispatch,
     getState: () => RootState
 ) {
@@ -35,6 +43,41 @@ export async function getWaypoints(
         getPolygonVertices: () => selectPolygonVertices(getState()),
         setPolygonVertices: (vertices) => dispatch(setPolygonVertices(vertices)),
     });
+}
+
+/** Multi-profile: generate geometry only (steps 1-2) */
+export async function getGeometry(
+    { startPoint, length, stepThroughMode }: GetRouteArgs,
+    dispatch: AppDispatch,
+    getState: () => RootState
+): Promise<RouteGeometry> {
+    const debug = getDebugSetters(dispatch, stepThroughMode);
+    const startAsTurfPoint = point([startPoint.lng, startPoint.lat]);
+    const enabledShapes = getState().route.options.enabledShapes;
+    const shape = selectRandomShape(enabledShapes);
+    return generateGeometry({
+        startPoint: startAsTurfPoint,
+        length,
+        debug,
+        shape,
+        setStep: (step) => dispatch(setGenerationStep(step)),
+    });
+}
+
+/** Multi-profile: run profile-dependent steps (3-5) on pre-generated geometry */
+export async function getProfileRoute(
+    geometry: RouteGeometry,
+    profile: Profile,
+    { stepThroughMode }: GetRouteArgs,
+    dispatch: AppDispatch,
+    _getState: () => RootState
+): Promise<{ wayPoints: Position[]; route: Feature<import("@turf/helpers").LineString>[] }> {
+    const debug = getDebugSetters(dispatch, stepThroughMode);
+    dispatch(setGenerationStep("snapping_to_roads"));
+    const wayPoints = await routeWithProfile(geometry, profile, debug, (step) => dispatch(setGenerationStep(step)));
+    dispatch(setGenerationStep("calculating_route"));
+    const route = await routerMakeRoute(wayPoints, profile, debug);
+    return { wayPoints, route };
 }
 
 export async function makeRoute(wayPoints: Position[], profile: Profile, debug: DebugSetters) {
